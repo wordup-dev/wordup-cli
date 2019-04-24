@@ -1,0 +1,14 @@
+FROM wordpress:cli
+
+ENV WP_CLI_CACHE_DIR=/tmp/.wp-cli/cache/
+ENV WP_CLI_PACKAGES_DIR=/tmp/.wp-cli/packages/
+
+USER root
+RUN apk add --no-cache zip
+
+COPY php.conf.ini /usr/local/etc/php/conf.d/conf.ini
+
+USER www-data
+
+RUN wp package install https://github.com/wordup-dev/wordup-wp-cli/archive/master.zip
+RUN wp package install wp-cli/dist-archive-command  

@@ -1,0 +1,6 @@
+*-debug.log
+*-error.log
+/dist
+/tmp
+/yarn.lock
+node_modules

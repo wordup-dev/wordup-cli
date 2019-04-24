@@ -1,0 +1,17 @@
+{
+  "name":"test",
+  "wordup":{
+    "name":"test",
+    "slugName":"test/test.php",
+    "type":"plugins",
+    "wpInstall":{
+      "title": "Test",
+      "adminUser": "admin",
+      "adminPassword": "1234567",
+      "adminEmail": "test@example.com",
+      "port":8000,
+      "plugins":{
+      }
+    }
+  }
+}

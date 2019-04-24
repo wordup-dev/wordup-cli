@@ -1,0 +1,69 @@
+# CAUTION: Only change this file if you know what you are doing
+version: '3'
+
+services:
+  db:
+    image: mariadb:latest
+    labels:
+      - "wordup.dev"
+    volumes:
+      - db_data:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: somewordpress
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+
+  wordpress:
+    depends_on:
+      - db
+    image: wordup-wp:1.0
+    build: 
+      context: ${WORDUP_DOCKERFILE_PATH:?err}
+      dockerfile: Dockerfile-wp
+
+    labels:
+      - "wordup.dev"
+      - "wordup.dev.project=${WORDUP_PROJECT:?err}"
+      - "wordup.dev.port=${WORDUP_PORT:-8000}"
+
+    ports:
+      - "${WORDUP_PORT:-8000}:80"
+    restart: always
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DB_NAME: wordpress
+      WORDUP_PORT: ${WORDUP_PORT:-8000}
+    volumes:
+      - wp_data:/var/www/html
+      - ./src:/src
+
+
+  wordpress-cli:
+    depends_on:
+      - db
+      - wordpress
+    image: wordup-wp-cli:1.0
+    build: 
+      context: ${WORDUP_DOCKERFILE_PATH:?err}
+      dockerfile: Dockerfile-wpcli
+
+    labels:
+      - "wordup.dev"
+    user: xfs
+    environment:
+      WORDUP_PORT: ${WORDUP_PORT:-8000}
+
+    volumes:
+      - wp_data:/var/www/html
+      #- ./config/php.conf.ini:/usr/local/etc/php/conf.d/conf.ini
+      - ./src:/src
+      - ./dist:/dist
+
+volumes:
+  db_data: {}
+  wp_data: {}
+

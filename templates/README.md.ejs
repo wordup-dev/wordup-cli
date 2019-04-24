@@ -1,0 +1,64 @@
+<%= name %>
+<%= ''.padStart(name.length, '=')  %>
+
+This WordPress <%= type %> project was bootstrapped with [wordup](https://wordup.dev)
+
+Happy Coding 🚀
+
+## Project setup 
+
+To setup your development server, run the following command in your project folder:
+
+```
+$ wordup install
+```
+
+or if it's already installed:
+
+```
+$ wordup start
+```
+
+Wordup uses the nodejs package.json file to save the project specific settings. 
+Feel free to change the package.json file for project specific needs (e.g. webpack). 
+
+Keep in mind: If you want to change the slug in package.json, you have to reinstall the project afterwards.
+
+<% if (type == 'plugin') { %>
+## Setup a Wordpress plugin
+
+Essential files for your WordPress plugin:
+
+Create a file called `<%= slug %>.php` in /src folder. 
+
+<% } %>
+
+<% if (type == 'theme') { %>
+## Setup Wordpress theme
+
+There are two essential files for a WordPress theme:
+
+`style.css` file with a doctype like this:
+
+```
+/*
+Theme Name: <%= name %>
+Theme URI: THEME SITE HERE
+Author: YOUR NAME HERE
+Author URI: YOUR SITE HERE
+Description: PLUGIN DESCRIPTION HERE
+Version: 0.1.0
+License: GNU General Public License v2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
+Tags: YOUR TAGS HERE
+Text Domain: <%= slug %>
+*/
+```
+
+`index.php` file with the basic template for your theme.
+<% } %>
+
+## Contributing
+
+wordup-cli is an open-source project. Development of wordup-cli happens in the open on GitHub. 
+Fell free to join us.

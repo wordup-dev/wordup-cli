@@ -1,0 +1,76 @@
+{
+  "name": "wordup-cli",
+  "description": "Development toolkit for setting up and managing your local WordPress Theme/Plugin",
+  "version": "0.1.0",
+  "bin": {
+    "wordup": "./bin/run"
+  },
+  "dependencies": {
+    "@oclif/command": "^1.5.13",
+    "@oclif/config": "^1.12.12",
+    "@oclif/plugin-help": "^2.1.6",
+    "axios": "^0.18.0",
+    "chalk": "^2.4.2",
+    "cli-ux": "^5.2.1",
+    "dot-prop": "^5.0.0",
+    "express": "^4.16.4",
+    "fs-extra": "^7.0.1",
+    "inquirer": "^6.3.1",
+    "open": "^6.1.0",
+    "shelljs": "^0.8.3",
+    "slugify": "^1.3.4",
+    "yeoman-environment": "^2.3.4",
+    "yeoman-generator": "^3.2.0"
+  },
+  "devDependencies": {
+    "@oclif/dev-cli": "^1.22.0",
+    "@oclif/test": "^1.2.4",
+    "chai": "^4.2.0",
+    "eslint": "^5.16.0",
+    "eslint-config-oclif": "^3.1.0",
+    "globby": "^8.0.2",
+    "mocha": "^5.2.0",
+    "nock": "^10.0.6",
+    "nyc": "^14.0.0",
+    "sinon": "^7.3.2"
+  },
+  "engines": {
+    "node": ">=8.3.0"
+  },
+  "files": [
+    "/bin",
+    "/npm-shrinkwrap.json",
+    "/oclif.manifest.json",
+    "/src",
+    "/docker",
+    "/templates"
+  ],
+  "homepage": "https://wordup.dev",
+  "repository": "github:wordup-dev/wordup-cli",
+  "bugs":"https://github.com/wordup-dev/wordup-cli/issues",
+  "keywords": [
+    "wordpress",
+    "wordup",
+    "devtools",
+    "php",
+    "oclif",
+    "cli",
+    "docker"
+  ],
+  "license": "GPL-3.0",
+  "main": "src/index.js",
+  "oclif": {
+    "commands": "./src/commands",
+    "bin": "wordup",
+    "plugins": [
+      "@oclif/plugin-help"
+    ]
+  },
+  "scripts": {
+    "postpack": "rm -f oclif.manifest.json",
+    "posttest": "eslint .",
+    "prepack": "oclif-dev manifest && oclif-dev readme",
+    "test": "nyc mocha --forbid-only \"test/**/*.test.js\"",
+    "version": "oclif-dev readme && git add README.md"
+  }
+}
