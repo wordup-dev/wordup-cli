@@ -4,7 +4,7 @@ Wordup CLI
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
 [![Version](https://img.shields.io/npm/v/wordup-cli.svg)](https://npmjs.org/package/wordup-cli)
 [![Downloads/week](https://img.shields.io/npm/dw/wordup-cli.svg)](https://npmjs.org/package/wordup-cli)
-[![License](https://img.shields.io/npm/l/wordup-cli.svg)](https://github.com/wordup/wordup-cli/blob/master/package.json)
+
 
 Wordup CLI is an open-source development toolkit for setting up and managing your local WordPress Theme/Plugin development, so that you can totally focus on coding.
 
@@ -38,8 +38,7 @@ What you can do with wordup-cli:
 
 # Examples
 
-Here is an example of how fast you can setup a new WordPress Plugin development stack:
-
+Check out this (video)[https://wordup.dev/#video] on our website to see how fast you can setup a new WordPress dev environment.
 
 # Installation / Requirements 
 
