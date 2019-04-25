@@ -87,7 +87,6 @@ USAGE
 * [`wordup list`](#wordup-list)
 * [`wordup start`](#wordup-start)
 * [`wordup stop`](#wordup-stop)
-* [`wordup use`](#wordup-use)
 * [`wordup wpcli COMMAND`](#wordup-wpcli-command)
 
 ## `wordup export TYPE`
@@ -183,7 +182,7 @@ OPTIONS
 
 DESCRIPTION
   ...
-  If you see unused projects in this list, run with --clear flag.
+  If you see deleted projects in this list, run with --clear flag.
 
 ALIASES
   $ wordup ls
@@ -236,25 +235,6 @@ DESCRIPTION
 ```
 
 _See code: [src/commands/stop.js](https://github.com/wordup-dev/wordup-cli/blob/v0.1.0/src/commands/stop.js)_
-
-## `wordup use`
-
-Set the wordup config for the project in the current directory
-
-```
-USAGE
-  $ wordup use
-
-OPTIONS
-  --overwrite=overwrite  Overwrite an exisiting Project with this ID
-
-DESCRIPTION
-  ...
-  This can be useful if you have downloaded a wordup project,
-  or moved your project folder.
-```
-
-_See code: [src/commands/use.js](https://github.com/wordup-dev/wordup-cli/blob/v0.1.0/src/commands/use.js)_
 
 ## `wordup wpcli COMMAND`
 
