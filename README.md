@@ -45,7 +45,7 @@ Check out this [video](https://wordup.dev/#video) on our website to see how fast
 Make sure you have node >= 8 and [docker-compose](https://www.docker.com/get-started) installed on your machine.  
 
 ```sh-session
-npm install -g wordup-cli
+$ npm install -g wordup-cli
 ```
 
 # Folder structure 
