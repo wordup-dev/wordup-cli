@@ -6,7 +6,7 @@ Wordup CLI
 [![Downloads/week](https://img.shields.io/npm/dw/wordup-cli.svg)](https://npmjs.org/package/wordup-cli)
 [![License](https://img.shields.io/npm/l/wordup-cli.svg)](https://github.com/wordup/wordup-cli/blob/master/package.json)
 
-Wordup CLI is an open-source development toolkit for setting up and managing your local WordPress Theme/Plugin development, so that you can tottaly focus on coding.
+Wordup CLI is an open-source development toolkit for setting up and managing your local WordPress Theme/Plugin development, so that you can totally focus on coding.
 
 It is based on docker-compose and uses a docker containerized LAMP-stack with all WordPress Plugins/Themes you need for your current project.
 

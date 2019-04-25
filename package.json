@@ -47,7 +47,7 @@
   ],
   "homepage": "https://wordup.dev",
   "repository": "github:wordup-dev/wordup-cli",
-  "bugs":"https://github.com/wordup-dev/wordup-cli/issues",
+  "bugs": "https://github.com/wordup-dev/wordup-cli/issues",
   "keywords": [
     "wordpress",
     "wordup",
