@@ -38,7 +38,7 @@ What you can do with wordup-cli:
 
 # Examples
 
-Check out this (video)[https://wordup.dev/#video] on our website to see how fast you can setup a new WordPress dev environment.
+Check out this [video](https://wordup.dev/#video) on our website to see how fast you can setup a new WordPress dev environment.
 
 # Installation / Requirements 
 
