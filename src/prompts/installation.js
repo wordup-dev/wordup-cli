@@ -94,9 +94,10 @@ class InstallationPrompt {
 
     const answers = await inquirer.prompt(questions)
 
-    this.privateKey =  answers.privateKey
-
-    this.project.setWordupPkg('wpInstall','wordup-connect:'+answers.url)
+    this.privateKey = answers.privateKey
+    if(answers.url){
+      this.project.setWordupPkg('wpInstall','wordup-connect:'+answers.url)
+    }
   }
 
   async askNew() {

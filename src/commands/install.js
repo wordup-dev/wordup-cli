@@ -87,11 +87,13 @@ class InstallCommand extends Command {
       const connect = require('../lib/connect')
       const sourceDataResp = await connect.isValidConnection(wordupConnect, privateKey)
       if (sourceDataResp.status === 'ok') {
+        this.log('Successfully called wordup-connect API on ' + wordupConnect)
+        this.log('Info: Based on your backup size, the installation can take quite a while.')
         installParams += ' --wordup-connect=' + wordupConnect + ' --private-key=' + privateKey
       } else if (sourceDataResp.status === 'error') {
-        this.error('Could not process updraft backup', {exit: 1})
+        this.error('Could not process updraftplus backup', {exit: 1})
       } else {
-        this.exit(1)
+        this.error('Could not connect with WordPress website (have you installed the wordup plugin on your server?).', {exit: 1})
       }
     }
 
@@ -103,7 +105,7 @@ class InstallCommand extends Command {
 
 
     //Install docker servers
-    const bootCode = await this.customLogs('Installing wordup project and connected docker containers', (resolve, reject, showLogs) => {
+    const bootCode = await this.customLogs('Installing wordup project and connected docker containers (can take some minutes)', (resolve, reject, showLogs) => {
       shell.exec('docker-compose --project-directory ' + process.cwd() + ' up -d --build',{silent: !showLogs}, function (code, _stdout, _stderr) {
         if (code === 0) {
           resolve({done: '✔', code:code})

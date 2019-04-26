@@ -17,18 +17,16 @@ module.exports = {
 
     return new Promise(resolve => {
       axios.get(apiUrl).then(function (response) {
-        console.log('Successfully called wordup-connect API on ' + sourceUrl)
         resolve(response.data)
       }).catch(function (error) {
         if (error.response.status === 401) {
           console.log('Error: Authentication failed')
-          resolve(false)
         } else if (error.response.status === 404) {
           console.log('Could not find API endpoint. Have you installed wordup-connect plugin on the source domain?')
-          resolve(false)
         } else {
-          console.log(error)
+          //Unknown error
         }
+        resolve(false)
       })
     })
   },

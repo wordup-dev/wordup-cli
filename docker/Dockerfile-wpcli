@@ -10,5 +10,5 @@ COPY php.conf.ini /usr/local/etc/php/conf.d/conf.ini
 
 USER www-data
 
-RUN wp package install https://github.com/wordup-dev/wordup-wp-cli/archive/v0.1.5.zip
+RUN wp package install https://github.com/wordup-dev/wordup-wp-cli/archive/v0.1.6.zip
 RUN wp package install wp-cli/dist-archive-command  
