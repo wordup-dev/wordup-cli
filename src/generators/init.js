@@ -20,6 +20,9 @@ class WordupInitGenerator extends Generator {
         }
         return true
       },
+      filter: function(val) {
+        return val.trim()
+      }
     },
     {
       type: 'list',
@@ -80,11 +83,11 @@ class WordupInitGenerator extends Generator {
     })
 
     // Copy gitignore files
-    this.fs.copyTpl(this.templatePath('.gitignore'), this.destinationPath(projectNameSlug + '/.gitignore'))
+    this.fs.copyTpl(this.templatePath('gitignore.ejs'), this.destinationPath(projectNameSlug + '/.gitignore'))
 
     // Scaffold
     if (this.answers.scaffold) {
-      this.fs.copyTpl(this.templatePath('.scaffold'), this.destinationPath(projectNameSlug + '/src/.scaffold'))
+      this.fs.copyTpl(this.templatePath('scaffold.ejs'), this.destinationPath(projectNameSlug + '/src/.scaffold'))
     } else {
       // Copy super basic skeleton
     }
@@ -104,10 +107,18 @@ class WordupInitGenerator extends Generator {
       private:true,
       engines: engines,
       scripts: {
-        start:'wordup start || true',
-        build:'wordup export'
+        start:'npx wordup start || true',
+        build:'npx wordup export'
       },
       wordup: {...this.wordupPackage}
+    }
+
+    const entryPoint = process.env._ || ''
+    if(entryPoint.endsWith('npx')){
+      pjson.devDependencies = {
+        "wordup-cli": "^"+version
+      }
+      pjson.scripts.postinstall = 'npx wordup install || true'
     }
 
     if(this.answers.repository){

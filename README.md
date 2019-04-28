@@ -42,11 +42,28 @@ Check out this [video](https://wordup.dev/#video) on our website to see how fast
 
 # Installation / Requirements 
 
-Make sure you have node >= 8 and [docker-compose](https://www.docker.com/get-started) installed on your machine.  
+Make sure you have node >= 8.3 (npm >= 5.2) and [docker-compose](https://www.docker.com/get-started) installed on your machine. 
+
+We recommend to install wordup-cli **globally**: 
 
 ```sh-session
 $ npm install -g wordup-cli
 ```
+
+If you **don't want** to install wordup-cli globally, you can also use wordup-cli as a devDependency via `npx`. Start with: 
+
+```sh-session
+$ npx wordup-cli init
+```
+
+`npx wordup-cli init` will add automatically the wordup-cli to your project devDependencies.
+
+```sh-session
+$ cd your-new-project
+$ npm install
+```
+
+If you use wordup-cli as a devDependency make sure to always use `npx` before every `wordup` command. 
 
 # Folder structure 
 
