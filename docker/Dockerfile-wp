@@ -2,4 +2,6 @@ FROM wordpress:latest
 
 COPY php.conf.ini /usr/local/etc/php/conf.d/conf.ini
 
+RUN mkdir /src
+
 RUN docker-php-ext-install pdo pdo_mysql
