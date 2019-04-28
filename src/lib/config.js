@@ -17,9 +17,7 @@ class Config {
         if (!fs.existsSync(this.configDir)) {
           fs.mkdirSync(this.configDir)
         }
-        fs.writeJSON(this.configFile, {}, {spaces: 4})
-      } else {
-        console.error(err)
+        fs.writeJsonSync(this.configFile, jsonConfig, {spaces: 4})
       }
     }
     return jsonConfig
