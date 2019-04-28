@@ -63,6 +63,7 @@ class WordupInitGenerator extends Generator {
     const projectTypeSingular =  this.answers.projectType.slice(0, -1)
 
     const projectPath = this.destinationPath(projectNameSlug)
+    this.destinationRoot(projectPath)
 
     // Create local config for new project
     const projectId = this.options.project.createProjectConf({
@@ -76,18 +77,18 @@ class WordupInitGenerator extends Generator {
     })
 
     // Writing README
-    this.fs.copyTpl(this.templatePath('README.md.ejs'), this.destinationPath(projectNameSlug + '/README.md'), {
+    this.fs.copyTpl(this.templatePath('README.md.ejs'), this.destinationPath('README.md'), {
       name: this.answers.projectName,
       type: projectTypeSingular,
       slug: projectNameSlug,
     })
 
     // Copy gitignore files
-    this.fs.copyTpl(this.templatePath('gitignore.ejs'), this.destinationPath(projectNameSlug + '/.gitignore'))
+    this.fs.copyTpl(this.templatePath('gitignore.ejs'), this.destinationPath('.gitignore'))
 
     // Scaffold
     if (this.answers.scaffold) {
-      this.fs.copyTpl(this.templatePath('scaffold.ejs'), this.destinationPath(projectNameSlug + '/src/.scaffold'))
+      this.fs.copyTpl(this.templatePath('scaffold.ejs'), this.destinationPath('src/.scaffold'))
     } else {
       // Copy super basic skeleton
     }
@@ -108,7 +109,8 @@ class WordupInitGenerator extends Generator {
       engines: engines,
       scripts: {
         start:'npx wordup start || true',
-        build:'npx wordup export'
+        build:'npx wordup export',
+        postinstall:'npx wordup install || true'
       },
       wordup: {...this.wordupPackage}
     }
@@ -118,7 +120,6 @@ class WordupInitGenerator extends Generator {
       pjson.devDependencies = {
         "wordup-cli": "^"+version
       }
-      pjson.scripts.postinstall = 'npx wordup install || true'
     }
 
     if(this.answers.repository){
@@ -129,12 +130,16 @@ class WordupInitGenerator extends Generator {
       pjson.homepage = this.answers.homepage
     }
 
-    this.fs.writeJSON(this.destinationPath(projectNameSlug + '/package.json'), pjson, {spaces: 4})
+    this.fs.writeJSON(this.destinationPath('package.json'), pjson, {spaces: 4})
 
     // Create docker-compose file
     if (this.answers.custom_compose) {
       // 2do
     }
+  }
+
+  install() {
+    this.npmInstall();
   }
 }
 

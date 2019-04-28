@@ -38,7 +38,7 @@ What you can do with wordup-cli:
 
 # Examples
 
-Check out this [video](https://wordup.dev/#video) on our website to see how fast you can setup a new WordPress dev environment.
+Check out this [VIDEO](https://wordup.dev/#video) on our website to see how fast you can setup a new WordPress dev environment.
 
 # Installation / Requirements 
 
@@ -50,20 +50,19 @@ We recommend to install wordup-cli **globally**:
 $ npm install -g wordup-cli
 ```
 
-If you **don't want** to install wordup-cli globally, you can also use wordup-cli as a devDependency via `npx`. Start with: 
+After installing wordup-cli, you can create your first project with `wordup init`
+
+---
+
+If you **don't want** to install wordup-cli globally, you can also use wordup-cli as a devDependency via `npx`. Start directly with a new wordup project: 
 
 ```sh-session
 $ npx wordup-cli init
 ```
 
-`npx wordup-cli init` will add automatically the wordup-cli to your project devDependencies.
+`npx wordup-cli init` will add automatically the wordup-cli to your new project devDependencies.
 
-```sh-session
-$ cd your-new-project
-$ npm install
-```
-
-If you use wordup-cli as a devDependency make sure to always use `npx` before every `wordup` command. 
+Note: If you use wordup-cli as a devDependency make sure to always use `npx` before every `wordup` command. 
 
 # Folder structure 
 

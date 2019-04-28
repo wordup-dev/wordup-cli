@@ -8,20 +8,28 @@ class InitCommand extends Command {
   async run() {
     const {flags} = this.parse(InitCommand)
 
-    const initResolved = await this.promptInit()
-    this.log(initResolved)
+    this.promptInit().then((folder) => {
+      this.log('---')
+      this.log('')
+      this.log('Successfully init new wordup project ('+folder+')')
+      this.log('Just cd to your project folder and start developing ;)')
+      this.log('')
+      this.log(chalk.bgBlue('wordup install')+' was executed automatically as a postinstall script in your package.json')
+    }).catch((err) => {
+      this.error(err)
+    })
   }
 
   async promptInit() {
     const env = createEnv()
     env.register(require.resolve('../generators/init'), 'wordup:init')
-
     return new Promise((resolve, reject) => {
       env.run('wordup:init', {project: this.wordupProject}, (err, results) => {
         if (err) {
           reject(err)
         } else {
-          resolve('Successfully init project. Please cd to your project folder and run ' + chalk.bgBlue('wordup install') + ' to setup dev server')
+          const folder = env.cwd;
+          resolve(folder)
         }
       })
     })
