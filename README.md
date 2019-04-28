@@ -87,7 +87,7 @@ $ npm install -g wordup-cli
 $ wordup COMMAND
 running command...
 $ wordup (-v|--version|version)
-wordup-cli/0.1.3 darwin-x64 node-v10.15.0
+wordup-cli/0.1.4 darwin-x64 node-v10.15.0
 $ wordup --help [COMMAND]
 USAGE
   $ wordup COMMAND
@@ -126,7 +126,7 @@ DESCRIPTION
   for backing up your current development stack.
 ```
 
-_See code: [src/commands/export.js](https://github.com/wordup-dev/wordup-cli/blob/v0.1.3/src/commands/export.js)_
+_See code: [src/commands/export.js](https://github.com/wordup-dev/wordup-cli/blob/v0.1.4/src/commands/export.js)_
 
 ## `wordup help [COMMAND]`
 
@@ -158,7 +158,7 @@ DESCRIPTION
   After you initialized a new project, you are able to install your development stack.
 ```
 
-_See code: [src/commands/init.js](https://github.com/wordup-dev/wordup-cli/blob/v0.1.3/src/commands/init.js)_
+_See code: [src/commands/init.js](https://github.com/wordup-dev/wordup-cli/blob/v0.1.4/src/commands/init.js)_
 
 ## `wordup install`
 
@@ -183,7 +183,7 @@ DESCRIPTION
   Info: Flags in this command overrule the config of your package.json.
 ```
 
-_See code: [src/commands/install.js](https://github.com/wordup-dev/wordup-cli/blob/v0.1.3/src/commands/install.js)_
+_See code: [src/commands/install.js](https://github.com/wordup-dev/wordup-cli/blob/v0.1.4/src/commands/install.js)_
 
 ## `wordup list`
 
@@ -204,7 +204,7 @@ ALIASES
   $ wordup ls
 ```
 
-_See code: [src/commands/list.js](https://github.com/wordup-dev/wordup-cli/blob/v0.1.3/src/commands/list.js)_
+_See code: [src/commands/list.js](https://github.com/wordup-dev/wordup-cli/blob/v0.1.4/src/commands/list.js)_
 
 ## `wordup start`
 
@@ -227,7 +227,7 @@ ALIASES
   $ wordup run
 ```
 
-_See code: [src/commands/start.js](https://github.com/wordup-dev/wordup-cli/blob/v0.1.3/src/commands/start.js)_
+_See code: [src/commands/start.js](https://github.com/wordup-dev/wordup-cli/blob/v0.1.4/src/commands/start.js)_
 
 ## `wordup stop`
 
@@ -250,7 +250,7 @@ DESCRIPTION
   Optionally you can use -d to delete the whole installation, this includes all files in your WordPress installation.
 ```
 
-_See code: [src/commands/stop.js](https://github.com/wordup-dev/wordup-cli/blob/v0.1.3/src/commands/stop.js)_
+_See code: [src/commands/stop.js](https://github.com/wordup-dev/wordup-cli/blob/v0.1.4/src/commands/stop.js)_
 
 ## `wordup wpcli COMMAND`
 
@@ -271,7 +271,7 @@ DESCRIPTION
   As an example: wordup wpcli post list
 ```
 
-_See code: [src/commands/wpcli.js](https://github.com/wordup-dev/wordup-cli/blob/v0.1.3/src/commands/wpcli.js)_
+_See code: [src/commands/wpcli.js](https://github.com/wordup-dev/wordup-cli/blob/v0.1.4/src/commands/wpcli.js)_
 <!-- commandsstop -->
 
 # Learn more
