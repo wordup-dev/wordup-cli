@@ -160,8 +160,8 @@ InstallCommand.flags = {
   port: flags.string({char: 'p', description: 'Install on a different port. Default: 8000'}),
   force: flags.boolean({char: 'f', description: 'Force the installation of the project'}),
   prompt: flags.boolean({description: 'If you want to do the setup again'}),
-  archive: flags.string({description: 'Install from an wordup archive.'}),
-  connect: flags.string({description: 'Install from an WordPress running website.', exclusive: ['archive']}),
+  archive: flags.string({description: 'Install from a wordup archive.'}),
+  connect: flags.string({description: 'Install from a WordPress running website.', exclusive: ['archive']}),
   'private-key': flags.string({description: 'Private key for the wordup-connect plugin', exclusive: ['archive'], dependsOn: ['connect']}),
 }
 

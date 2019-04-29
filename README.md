@@ -33,7 +33,7 @@ What you can do with wordup-cli:
 * ⚙️**Automatic installation of dependencies** - Automatically download and activate public WordPress Plugins/Themes or even Github hosted projects (like e.g. [wp-graphql](https://github.com/wp-graphql/wp-graphql))
 * 🚀**Easy portability** - Export your theme/project or your whole WordPress installation. So that you can install it on a remote server.
 * 📦**Backup your installation** - And (re)install a project from an exported wordup project.
-* 🤩**Hassle-free remote WordPress connection** - Install your project, based on an existing WordPress hosted website (with the wordup-connect plugin). Use this feature for example to test major WordPress updates with ease locally.
+* 🤩**Hassle-free remote WordPress connection** - Install your project, based on an existing WordPress hosted website (with the [wordup-connect](https://github.com/wordup-dev/wordup-connect) plugin). Use this feature for example to test major WordPress updates with ease locally.
 * 👾**Share your stack** - wordup is the easiest way to share your project with the world or just your team members. Just type:  `git clone`, and then `wordup install`
 
 # Examples

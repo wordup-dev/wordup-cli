@@ -13,7 +13,7 @@ class InstallationPrompt {
     const answers = await inquirer.prompt({
       type: 'list',
       name: 'origin',
-      message: 'Do you want to install from scratch (New) or install from a local/remote source',
+      message: 'Do you want to install WordPress from scratch (New) or install from a local/remote source',
       choices: [
         {name: 'New', value: 'new'},
         {name: 'Remote/Local wordup archive', value: 'wordup-archive'},

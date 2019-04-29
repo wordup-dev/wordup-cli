@@ -139,7 +139,9 @@ class WordupInitGenerator extends Generator {
   }
 
   install() {
-    this.npmInstall();
+    if(this.options.autoinstall){
+      this.npmInstall();
+    }
   }
 }
 
