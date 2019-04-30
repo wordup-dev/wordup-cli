@@ -22,6 +22,9 @@ services:
     build: 
       context: ${WORDUP_DOCKERFILE_PATH:?err}
       dockerfile: Dockerfile-wp
+      args:
+        USER_ID: ${WORDUP_UID:-1000}
+        GROUP_ID: ${WORDUP_GID:-1000}
 
     labels:
       - "wordup.dev"
@@ -50,10 +53,13 @@ services:
     build: 
       context: ${WORDUP_DOCKERFILE_PATH:?err}
       dockerfile: Dockerfile-wpcli
+      args:
+        USER_ID: ${WORDUP_UID:-1000}
+        GROUP_ID: ${WORDUP_GID:-1000}
 
     labels:
       - "wordup.dev"
-    user: xfs
+    #user: xfs
     environment:
       WORDUP_PORT: ${WORDUP_PORT:-8000}
 

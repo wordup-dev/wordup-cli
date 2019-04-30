@@ -103,6 +103,7 @@ class InstallCommand extends Command {
       installParams += ' --scaffold'
     }
 
+    project.permissionFix()
 
     //Install docker servers
     const bootCode = await this.customLogs('Installing wordup project and connected docker containers (can take some minutes)', (resolve, reject, showLogs) => {

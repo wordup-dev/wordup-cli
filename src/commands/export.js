@@ -21,6 +21,8 @@ class ExportCommand extends Command {
     shell.env.COMPOSE_PROJECT_NAME = this.wordupProject.wPkg('slugName')
     shell.env.WORDUP_PROJECT = this.wordupProject.wPkg('slugName')
 
+    project.permissionFix()
+
     shell.exec('docker-compose --project-directory ' + process.cwd() + ' run --rm wordpress-cli wordup export ' + this.wordupProject.getWordupPkgB64() + ' --type=' + exportType, function (code, stdout, stderr) {
       if (exportType === 'installation') {
         const crypto = require('crypto')

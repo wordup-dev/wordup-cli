@@ -31,6 +31,8 @@ class StartCommand extends Command {
       shell.env.WORDUP_PORT = flags.port
     }
 
+    project.permissionFix()
+
     const startCode = await this.customLogs('Start wordup', (resolve, reject, showLogs) => {
       shell.exec('docker-compose --project-directory ' + process.cwd() + ' up -d', {silent: !showLogs}, function (code, _stdout, _stderr) {
         if (code === 0) {

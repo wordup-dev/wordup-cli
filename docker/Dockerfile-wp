@@ -1,5 +1,11 @@
 FROM wordpress:latest
 
+ARG USER_ID
+ARG GROUP_ID
+
 COPY php.conf.ini /usr/local/etc/php/conf.d/conf.ini
 
 RUN docker-php-ext-install pdo pdo_mysql
+
+RUN userdel -f www-data &&\
+    useradd -l -u ${USER_ID} www-data

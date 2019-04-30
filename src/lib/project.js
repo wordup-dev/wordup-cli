@@ -52,8 +52,16 @@ class Project {
       }
     }
 
+    //Set env which are the same for each project
     shell.env.COMPOSE_FILE = composerFiles
     shell.env.WORDUP_DOCKERFILE_PATH = this.wordupDockerPath()
+
+    // This is necessary to prevent file permission issues on linux with docker
+    // Kudos: https://jtreminio.com/blog/running-docker-containers-as-current-host-user/ 
+    if (process.getuid) shell.env.WORDUP_UID = process.getuid()
+    //GroupId is currently not used in dockerfiles
+    if (process.getgid) shell.env.WORDUP_GID = process.getgid()
+    
   }
 
   //Get a custom wordup setting from package.json
@@ -236,6 +244,18 @@ class Project {
     }
     return false
   }
+
+
+  permissionFix(){
+
+    //Create /src and /dist folder. This is a hack to prevent file permission issues in bind mount volumes in docker-compose 
+    const srcFolder = path.join(process.cwd(),'src')
+    const distFolder = path.join(process.cwd(),'dist')
+    if (!fs.existsSync(srcFolder)) fs.mkdirSync(srcFolder)
+    if (!fs.existsSync(distFolder)) fs.mkdirSync(distFolder)
+
+  }
+
 }
 
 module.exports = Project
