@@ -42,29 +42,21 @@ class InstallCommand extends Command {
     }
 
     //Parse the finale installtion config, after prompting
-    if(wpInstall.type === 'archive'){
+    if(!wordupArchive && wpInstall.type === 'archive'){
       wordupArchive = wpInstall.config
-    }else if(wpInstall.type === 'wordup-connect'){
+    }else if(!wordupConnect && wpInstall.type === 'wordup-connect'){
       wordupConnect = wpInstall.config
-    }else if(wpInstall.type === 'new'){
-      if(wpInstall.config.port){
-        flags.port = wpInstall.config.port
-      }
+    }else if(!wordupArchive && !wordupConnect && wpInstall.type === 'new'){
+      if(wpInstall.config.siteUrl && !flags.siteurl) flags.siteurl = wpInstall.config.siteUrl
     }
     
     let installParams = ''
     let addVolumes = ''
 
-    shell.env.COMPOSE_PROJECT_NAME = project.wPkg('slugName')
-    shell.env.WORDUP_PROJECT = project.wPkg('slugName')
-    if (flags.port) {
-      shell.env.WORDUP_PORT = flags.port 
-    }
-
     if (wordupArchive) {
       if (utils.isValidUrl(wordupArchive)) {
         this.log('Download wordup archive from ' + wordupArchive)
-        installParams = installParams + ' --wordup-archive=' + wordupArchive
+        installParams += ' --wordup-archive=' + wordupArchive
       } else {
         
         this.log('Installing archive from path: '+wordupArchive)
@@ -103,7 +95,13 @@ class InstallCommand extends Command {
       installParams += ' --scaffold'
     }
 
-    project.permissionFix()
+    //Set wp url. Only url OR port is allowed
+    if(flags.siteurl){
+      installParams += ' --siteurl='+flags.siteurl
+    }
+
+    //Set install params
+    project.prepareDockerComposeUp(flags.port)
 
     //Install docker servers
     const bootCode = await this.customLogs('Installing wordup project and connected docker containers (can take some minutes)', (resolve, reject, showLogs) => {
@@ -132,13 +130,14 @@ class InstallCommand extends Command {
       })
 
       if(installCode === 0){
-        const port = (shell.env.WORDUP_PORT || 8000)
-        project.setProjectConf('installedOnPort', port)
-        project.setProjectConf('listeningOnPort', port)
+        if(flags.siteurl) project.setProjectConf('customSiteUrl', flags.siteurl)
+
+        project.setProjectConf('installedOnPort', flags.port)
+        project.setProjectConf('listeningOnPort', flags.port)
         project.setProjectConf('scaffoldOnInstall', false)
         
-        this.log('"'+project.wPkg('projectName') + '" successfully installed. Listening at ' + 'http://localhost:' + port)
-        open('http://localhost:' + port+'/wp-admin', {wait: false})
+        this.log('"'+project.wPkg('projectName') + '" successfully installed. Listening at http://localhost:' + flags.port)
+        await open( (flags.siteurl ? flags.siteurl : 'http://localhost:' + flags.port)+'/wp-admin' , {wait: false})
       }else{
         this.error('There was an error with setting-up WordPress', {exit: 1})
       }
@@ -152,15 +151,18 @@ class InstallCommand extends Command {
 
 InstallCommand.description = `Install and start the WordPress development server
 ...
-If there is no installation config in your package.json, a step-by-step setup will be shown.
-Info: Flags in this command overrule the config of your package.json.
+If there is no wordup installation config in your package.json, a setup to config for your package.json will be shown.
+You can set a custom site url for WordPress, but please be aware that you have to proxy this url to your localhost[:port]
+
+Note: Flags in this command overrule the config of your package.json.
 `
 
 InstallCommand.flags = {
   ...Command.flags,
-  port: flags.string({char: 'p', description: 'Install on a different port. Default: 8000'}),
+  port: flags.string({char: 'p', description: 'Install on a different port', default:'8000'}),
+  siteurl: flags.string({description: 'Specify a custom WordPress site url. Use --help for details.'}),
   force: flags.boolean({char: 'f', description: 'Force the installation of the project'}),
-  prompt: flags.boolean({description: 'If you want to do the setup again'}),
+  prompt: flags.boolean({description: 'If you want to do the setup again', exclusive: ['archive','connect']}),
   archive: flags.string({description: 'Install from a wordup archive.'}),
   connect: flags.string({description: 'Install from a WordPress running website.', exclusive: ['archive']}),
   'private-key': flags.string({description: 'Private key for the wordup-connect plugin', exclusive: ['archive'], dependsOn: ['connect']}),

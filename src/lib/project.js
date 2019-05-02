@@ -65,9 +65,9 @@ class Project {
   }
 
   //Get a custom wordup setting from package.json
-  wPkg(key) {
+  wPkg(key, defaultValue) {
     if (key) {
-      return dotProp.get( this.pjson, 'wordup.'+key)
+      return dotProp.get( this.pjson, 'wordup.'+key, defaultValue)
     }
     return dotProp.get( this.pjson, 'wordup',{})
   }
@@ -246,9 +246,13 @@ class Project {
   }
 
 
-  permissionFix(){
+  prepareDockerComposeUp(port){
 
-    //Create /src and /dist folder. This is a hack to prevent file permission issues in bind mount volumes in docker-compose 
+    shell.env.COMPOSE_PROJECT_NAME = this.wPkg('slugName')
+    shell.env.WORDUP_PROJECT = this.wPkg('slugName')
+    shell.env.WORDUP_PORT = port
+
+    //This is a hack to prevent file permission issues in bind mount volumes in docker-compose 
     const srcFolder = path.join(process.cwd(),'src')
     const distFolder = path.join(process.cwd(),'dist')
     if (!fs.existsSync(srcFolder)) fs.mkdirSync(srcFolder)

@@ -15,8 +15,7 @@ class WpcliCommand extends Command {
       this.exit(4)
     }
 
-    shell.env.WORDUP_PROJECT = this.wordupProject.wPkg('slugName')
-    shell.env.COMPOSE_PROJECT_NAME = this.wordupProject.wPkg('slugName')
+    this.wordupProject.prepareDockerComposeUp(this.wordupProject.config.listeningOnPort)
 
     const wpCliCmd = argv.join(' ')
 

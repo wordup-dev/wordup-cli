@@ -37,6 +37,7 @@ class StopCommand extends Command {
           config.set('projects.' + projectId + '.listeningOnPort', false)
           if (deleteAll) {
             config.set('projects.' + projectId + '.installedOnPort', false)
+            config.remove('projects.' + projectId + '.customSiteUrl')
           }
         }
         resolve({done: (code === 0 ? '✔' : 'Oops, something went wrong'), code:code})

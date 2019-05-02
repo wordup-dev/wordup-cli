@@ -24,14 +24,8 @@ class StartCommand extends Command {
       this.exit(4)
     }
 
-    shell.env.COMPOSE_PROJECT_NAME = project.wPkg('slugName')
-    shell.env.WORDUP_PROJECT = project.wPkg('slugName')
-    shell.env.WORDUP_PORT = project.config.installedOnPort
-    if (flags.port) {
-      shell.env.WORDUP_PORT = flags.port
-    }
-
-    project.permissionFix()
+    const port = flags.port ? flags.port : project.config.installedOnPort
+    project.prepareDockerComposeUp(port)
 
     const startCode = await this.customLogs('Start wordup', (resolve, reject, showLogs) => {
       shell.exec('docker-compose --project-directory ' + process.cwd() + ' up -d', {silent: !showLogs}, function (code, _stdout, _stderr) {
@@ -44,9 +38,11 @@ class StartCommand extends Command {
     })
 
     if(startCode === 0){
-      this.log('"'+project.wPkg('projectName') + '" successfully started. Listening at ' + 'http://localhost:' + shell.env.WORDUP_PORT)
-      open('http://localhost:' + shell.env.WORDUP_PORT, {wait: false})
-      project.setProjectConf('listeningOnPort', shell.env.WORDUP_PORT)
+      this.log('"'+project.wPkg('projectName') + '" successfully started. Listening at http://localhost:' + port)
+
+      const siteUrl = (project.config.customSiteUrl ? project.config.customSiteUrl : 'http://localhost:' + port)
+      await open(siteUrl, {wait: false})
+      project.setProjectConf('listeningOnPort', port)
     }else{
       this.error('There was an error while starting the docker containers.', {exit: 1})
     }

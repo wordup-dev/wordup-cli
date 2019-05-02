@@ -13,15 +13,12 @@ class ExportCommand extends Command {
       this.exit(1)
     }
 
-    if(!this.wordupProject.isWordupRunning('', true)){
+    if(!project.isWordupRunning('', true)){
       this.log('Your project is not running, please use ' + chalk.bgBlue('wordup install') + ' or '+chalk.bgBlue('wordup start') )
       this.exit(4)
     }
 
-    shell.env.COMPOSE_PROJECT_NAME = this.wordupProject.wPkg('slugName')
-    shell.env.WORDUP_PROJECT = this.wordupProject.wPkg('slugName')
-
-    project.permissionFix()
+    project.prepareDockerComposeUp(project.config.listeningOnPort)
 
     let exportParams = ''
     let filename = ''
@@ -30,7 +27,7 @@ class ExportCommand extends Command {
       exportParams = ' --filename='+filename
     }
 
-    shell.exec('docker-compose --project-directory ' + process.cwd() + ' run --rm wordpress-cli wordup export ' + this.wordupProject.getWordupPkgB64() + ' --type=' + exportType+exportParams, function (code, stdout, stderr) {
+    shell.exec('docker-compose --project-directory ' + process.cwd() + ' run --rm wordpress-cli wordup export ' + project.getWordupPkgB64() + ' --type=' + exportType+exportParams, function (code, stdout, stderr) {
       if (exportType === 'installation') {
         const crypto = require('crypto')
         
