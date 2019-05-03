@@ -27,11 +27,11 @@ class ExportCommand extends Command {
       exportParams = ' --filename='+filename
     }
 
-    shell.exec('docker-compose --project-directory ' + process.cwd() + ' run --rm wordpress-cli wordup export ' + project.getWordupPkgB64() + ' --type=' + exportType+exportParams, function (code, stdout, stderr) {
+    shell.exec('docker-compose --project-directory ' + project.getProjectPath() + ' run --rm wordpress-cli wordup export ' + project.getWordupPkgB64() + ' --type=' + exportType+exportParams, function (code, stdout, stderr) {
       if (exportType === 'installation') {
         const crypto = require('crypto')
         
-        fs.createReadStream('./dist/'+filename+'.tar.gz')
+        fs.createReadStream( project.getProjectPath('dist/'+filename+'.tar.gz'))
         .pipe(crypto.createHash('sha1').setEncoding('hex'))
         .on('finish', function () {
           console.log('Checksum sha1', this.read()) // the hash

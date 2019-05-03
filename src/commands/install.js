@@ -105,7 +105,7 @@ class InstallCommand extends Command {
 
     //Install docker servers
     const bootCode = await this.customLogs('Installing wordup project and connected docker containers (can take some minutes)', (resolve, reject, showLogs) => {
-      shell.exec('docker-compose --project-directory ' + process.cwd() + ' up -d --build',{silent: !showLogs}, function (code, _stdout, _stderr) {
+      shell.exec('docker-compose --project-directory ' + project.getProjectPath() + ' up -d --build',{silent: !showLogs}, function (code, _stdout, _stderr) {
         if (code === 0) {
           resolve({done: '✔', code:code})
         } else {
@@ -124,7 +124,7 @@ class InstallCommand extends Command {
       })
       
       const installCode = await this.customLogs('Setting-up WordPress based on your package.json settings', (resolve, reject, showLogs) => {
-        shell.exec('docker-compose --project-directory ' + process.cwd() + ' run --rm ' + addVolumes + ' wordpress-cli wordup install ' + project.getWordupPkgB64() + installParams, {silent: !showLogs}, function (code, _stdout, _stderr) {
+        shell.exec('docker-compose --project-directory ' + project.getProjectPath() + ' run --rm ' + addVolumes + ' wordpress-cli wordup install ' + project.getWordupPkgB64() + installParams, {silent: !showLogs}, function (code, _stdout, _stderr) {
           resolve({done: '✔', code:code})
         })
       })
@@ -137,6 +137,7 @@ class InstallCommand extends Command {
         project.setProjectConf('scaffoldOnInstall', false)
         
         this.log('"'+project.wPkg('projectName') + '" successfully installed. Listening at http://localhost:' + flags.port)
+        this.log('')
         await open( (flags.siteurl ? flags.siteurl : 'http://localhost:' + flags.port)+'/wp-admin' , {wait: false})
       }else{
         this.error('There was an error with setting-up WordPress', {exit: 1})
@@ -151,8 +152,8 @@ class InstallCommand extends Command {
 
 InstallCommand.description = `Install and start the WordPress development server
 ...
-If there is no wordup installation config in your package.json, a setup to config for your package.json will be shown.
-You can set a custom site url for WordPress, but please be aware that you have to proxy this url to your localhost[:port]
+If there is no wordup installation config in your package.json, a setup to config for your installation will be shown.
+You can set a custom site url for WordPress, but please be aware that you have to proxy this url to your localhost:port
 
 Note: Flags in this command overrule the config of your package.json.
 `

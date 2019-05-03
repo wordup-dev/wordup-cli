@@ -13,9 +13,16 @@ const wordupInstallationConfigItems = ['title', 'adminUser','adminPassword', 'ad
 
 class Project {
   constructor(oclifConfig, log, error) {
+    //Set projectpath
+    if(process.env.WORDUP_PROJECT_PATH){
+      this.projectPath = process.env.WORDUP_PROJECT_PATH
+    }else{
+      this.projectPath = process.cwd()
+    }
+
     this._wordupConfig = new Config(oclifConfig.configDir)
     this.oclifConfig = oclifConfig
-    this.projectId = crypto.createHash('sha1').update(process.cwd()).digest('hex')
+    this.projectId = crypto.createHash('sha1').update(this.projectPath).digest('hex')
     this.config = {}
     this.pjson = {}
     this.log = log
@@ -25,9 +32,9 @@ class Project {
   setUp() {
     let composerFiles = path.join(this.wordupDockerPath(), '/docker-compose.yml')
 
-    if (fs.existsSync('./package.json')) {
+    if (fs.existsSync(this.getProjectPath('package.json'))) {
       try {
-        this.pjson = fs.readJsonSync('./package.json')
+        this.pjson = fs.readJsonSync(this.getProjectPath('package.json'))
       } catch (err) {
         this.error('Could not parse package.json', {exit:1})
       }
@@ -46,10 +53,10 @@ class Project {
       this.config = this._wordupConfig.get('projects.' + this.projectId)
 
       //Set docker-compose files
-      if (fs.existsSync('./docker-compose.yml')) {
+      if (fs.existsSync(this.getProjectPath('docker-compose.yml'))) {
         // If there is a local docker-compose.yml file, extend it
         const seperator = (this.oclifConfig.platform === 'win32') ? ';' : ':'
-        composerFiles += seperator + path.join(process.cwd(), '/docker-compose.yml')
+        composerFiles += seperator + this.getProjectPath('docker-compose.yml') 
       }
     }
 
@@ -83,7 +90,7 @@ class Project {
     dotProp.delete(pjsonCopy, 'wordup.slugName')
 
     try {
-      fs.writeJsonSync('./package.json', pjsonCopy, {spaces: 4})
+      fs.writeJsonSync(this.getProjectPath('package.json'), pjsonCopy, {spaces: 4})
     } catch (err) {
       this.error(err, {exit:1})
     }
@@ -115,7 +122,7 @@ class Project {
     const default_wordup_conf = {
       name: this.wPkg('projectName'),
       slugName: this.wPkg('slugName'),
-      path: process.cwd(),
+      path: this.getProjectPath(),
       installedOnPort: (this.config ? this.config.installedOnPort : false),
       listeningOnPort: (this.config ? this.config.listeningOnPort : false),
       created: (this.config ? this.config.created : Math.floor(Date.now() / 1000))
@@ -126,7 +133,7 @@ class Project {
 
   isExecWordupProject() {
     // package.json is always required
-    if (!fs.existsSync('./package.json')) {
+    if (!fs.existsSync(this.getProjectPath('package.json'))) {
       this.log('No package.json. Create a new project or go to an existing wordup project folder.')
       return false
     }
@@ -155,7 +162,7 @@ class Project {
 
 
     // Just notify if there is a custom docker-compose.yml
-    if (fs.existsSync('./docker-compose.yml')) {
+    if (fs.existsSync(this.getProjectPath('docker-compose.yml'))) {
       this.log('Running with extended docker-compose file')
     }
     return true
@@ -163,16 +170,6 @@ class Project {
 
   isInstalled() {
     return this.config && (this.config.installedOnPort !== false)
-  }
-
-  setDockerCompose() {
-    // If there is no docker-compose.yml use default one
-    if (!fs.existsSync('./docker-compose.yml')) {
-      shell.env.COMPOSE_FILE = path.join(this.wordupDockerPath(), '/docker-compose.yml')
-    } else {
-      delete shell.env.COMPOSE_FILE
-    }
-    shell.env.WORDUP_DOCKERFILE_PATH = this.wordupDockerPath()
   }
 
   isWordupRunning(msg,checkOwn=false) {
@@ -257,11 +254,18 @@ class Project {
     shell.env.WORDUP_PORT = port
 
     //This is a hack to prevent file permission issues in bind mount volumes in docker-compose 
-    const srcFolder = path.join(process.cwd(),'src')
-    const distFolder = path.join(process.cwd(),'dist')
+    const srcFolder = this.getProjectPath('src')
+    const distFolder = this.getProjectPath('dist')
     if (!fs.existsSync(srcFolder)) fs.mkdirSync(srcFolder)
     if (!fs.existsSync(distFolder)) fs.mkdirSync(distFolder)
 
+  }
+
+  getProjectPath(addPath){
+    if(addPath){
+      return path.join(this.projectPath,addPath)
+    }
+    return this.projectPath
   }
 
 }

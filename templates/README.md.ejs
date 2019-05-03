@@ -24,14 +24,36 @@ Feel free to change the package.json file for project specific needs (e.g. webpa
 
 Keep in mind: If you want to change the slug in package.json, you have to reinstall the project afterwards.
 
+### Use wordup-cli locally
+
+You have also the option to use wordup-cli locally as a devDependency in your package.json file. 
+If you want run a wordup command from your local package,  use `npx` before `wordup`. For example:
+
+```
+$ npx wordup start
+```
+
 <% if (type == 'plugin') { %>
 ## Setup a Wordpress plugin
 
 Essential files for your WordPress plugin:
 
-Create a file called `<%= slug %>.php` in /src folder. 
+Create a file called `<%= slug %>.php` in /src folder with a doctype like this:
 
-Caution: If the essential files are not in your src folder, wordup will return an error during installation.
+```
+/**
+ * Plugin Name:     <%= name %>
+ * Plugin URI:      PLUGIN SITE HERE
+ * Description:     PLUGIN DESCRIPTION HERE
+ * Author:          YOUR NAME HERE
+ * Author URI:      YOUR SITE HERE
+ * Text Domain:     <%= slug %>
+ * Domain Path:     /languages
+ * Version:         0.1.0
+ *
+ * @package         <%= slug %>
+ */
+```
 
 <% } %>
 

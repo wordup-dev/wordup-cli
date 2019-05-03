@@ -20,7 +20,7 @@ class WpcliCommand extends Command {
     const wpCliCmd = argv.join(' ')
 
     this.log('Run command: wp ' + wpCliCmd)
-    shell.exec('docker-compose --project-directory ' + process.cwd() + ' run --rm wordpress-cli ' + wpCliCmd)
+    shell.exec('docker-compose --project-directory ' + project.getProjectPath() + ' run --rm wordpress-cli ' + wpCliCmd)
 
   }
 }

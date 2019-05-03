@@ -28,7 +28,7 @@ class StartCommand extends Command {
     project.prepareDockerComposeUp(port)
 
     const startCode = await this.customLogs('Start wordup', (resolve, reject, showLogs) => {
-      shell.exec('docker-compose --project-directory ' + process.cwd() + ' up -d', {silent: !showLogs}, function (code, _stdout, _stderr) {
+      shell.exec('docker-compose --project-directory ' + project.getProjectPath() + ' up -d', {silent: !showLogs}, function (code, _stdout, _stderr) {
         if (code === 0) {
           resolve({done: '✔', code: code})
         } else {
