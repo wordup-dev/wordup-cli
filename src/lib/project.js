@@ -12,8 +12,9 @@ const wordupInstallationConfigItems = ['title', 'adminUser','adminPassword', 'ad
 
 
 class Project {
-  constructor(configDir, log, error) {
-    this._wordupConfig = new Config(configDir)
+  constructor(oclifConfig, log, error) {
+    this._wordupConfig = new Config(oclifConfig.configDir)
+    this.oclifConfig = oclifConfig
     this.projectId = crypto.createHash('sha1').update(process.cwd()).digest('hex')
     this.config = {}
     this.pjson = {}
@@ -47,7 +48,7 @@ class Project {
       //Set docker-compose files
       if (fs.existsSync('./docker-compose.yml')) {
         // If there is a local docker-compose.yml file, extend it
-        const seperator = (this.config.platform === 'win32') ? ';' : ':'
+        const seperator = (this.oclifConfig.platform === 'win32') ? ';' : ':'
         composerFiles += seperator + path.join(process.cwd(), '/docker-compose.yml')
       }
     }
@@ -56,11 +57,14 @@ class Project {
     shell.env.COMPOSE_FILE = composerFiles
     shell.env.WORDUP_DOCKERFILE_PATH = this.wordupDockerPath()
 
-    // This is necessary to prevent file permission issues on linux with docker
-    // Kudos: https://jtreminio.com/blog/running-docker-containers-as-current-host-user/ 
-    if (process.getuid) shell.env.WORDUP_UID = process.getuid()
-    //GroupId is currently not used in dockerfiles
-    if (process.getgid) shell.env.WORDUP_GID = process.getgid()
+    // This is necessary to prevent file permission issues on LINUX with docker
+    // Not working if uid exists in container. This is stil an issue
+    // Kudos: https://jtreminio.com/blog/running-docker-containers-as-current-host-user/
+    if(this.oclifConfig.platform === 'linux'){
+      if (process.getuid) shell.env.WORDUP_UID = process.getuid()
+      //GroupId is currently not used in dockerfiles
+      if (process.getgid) shell.env.WORDUP_GID = process.getgid()
+    }
     
   }
 

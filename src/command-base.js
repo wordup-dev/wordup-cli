@@ -24,7 +24,7 @@ class Base extends Command {
     }
     this.debug = flags.logs || false
     this.wordupConfig = new Config(this.config.configDir)
-    this.wordupProject = new Project(this.config.configDir, this.log, this.error)
+    this.wordupProject = new Project(this.config, this.log, this.error)
     this.wordupProject.setUp()
   }
 
