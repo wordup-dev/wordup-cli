@@ -86,7 +86,7 @@ $ npm install -g wordup-cli
 $ wordup COMMAND
 running command...
 $ wordup (-v|--version|version)
-wordup-cli/0.1.7 darwin-x64 node-v10.15.0
+wordup-cli/0.2.0 darwin-x64 node-v10.15.0
 $ wordup --help [COMMAND]
 USAGE
   $ wordup COMMAND
@@ -125,7 +125,7 @@ DESCRIPTION
   for backing up your current development stack.
 ```
 
-_See code: [src/commands/export.js](https://github.com/wordup-dev/wordup-cli/blob/v0.1.7/src/commands/export.js)_
+_See code: [src/commands/export.js](https://github.com/wordup-dev/wordup-cli/blob/v0.2.0/src/commands/export.js)_
 
 ## `wordup help [COMMAND]`
 
@@ -162,7 +162,7 @@ DESCRIPTION
   You can stop this behavior with --no-autoinstall
 ```
 
-_See code: [src/commands/init.js](https://github.com/wordup-dev/wordup-cli/blob/v0.1.7/src/commands/init.js)_
+_See code: [src/commands/init.js](https://github.com/wordup-dev/wordup-cli/blob/v0.2.0/src/commands/init.js)_
 
 ## `wordup install`
 
@@ -174,20 +174,24 @@ USAGE
 
 OPTIONS
   -f, --force                Force the installation of the project
-  -p, --port=port            Install on a different port. Default: 8000
+  -p, --port=port            [default: 8000] Install on a different port
   --archive=archive          Install from a wordup archive.
   --connect=connect          Install from a WordPress running website.
   --logs                     Shows all stdout logs of this process
   --private-key=private-key  Private key for the wordup-connect plugin
   --prompt                   If you want to do the setup again
+  --siteurl=siteurl          Specify a custom WordPress site url. Use --help for details.
 
 DESCRIPTION
   ...
-  If there is no installation config in your package.json, a step-by-step setup will be shown.
-  Info: Flags in this command overrule the config of your package.json.
+  If there is no wordup installation config in your package.json, a setup to config for your installation will be shown.
+  You can set a custom site url for WordPress, but please be aware that you have to proxy this url to your 
+  localhost:port
+
+  Note: Flags in this command overrule the config of your package.json.
 ```
 
-_See code: [src/commands/install.js](https://github.com/wordup-dev/wordup-cli/blob/v0.1.7/src/commands/install.js)_
+_See code: [src/commands/install.js](https://github.com/wordup-dev/wordup-cli/blob/v0.2.0/src/commands/install.js)_
 
 ## `wordup list`
 
@@ -208,7 +212,7 @@ ALIASES
   $ wordup ls
 ```
 
-_See code: [src/commands/list.js](https://github.com/wordup-dev/wordup-cli/blob/v0.1.7/src/commands/list.js)_
+_See code: [src/commands/list.js](https://github.com/wordup-dev/wordup-cli/blob/v0.2.0/src/commands/list.js)_
 
 ## `wordup start`
 
@@ -231,7 +235,7 @@ ALIASES
   $ wordup run
 ```
 
-_See code: [src/commands/start.js](https://github.com/wordup-dev/wordup-cli/blob/v0.1.7/src/commands/start.js)_
+_See code: [src/commands/start.js](https://github.com/wordup-dev/wordup-cli/blob/v0.2.0/src/commands/start.js)_
 
 ## `wordup stop`
 
@@ -254,7 +258,7 @@ DESCRIPTION
   Optionally you can use -d to delete the whole installation, this includes all files in your WordPress installation.
 ```
 
-_See code: [src/commands/stop.js](https://github.com/wordup-dev/wordup-cli/blob/v0.1.7/src/commands/stop.js)_
+_See code: [src/commands/stop.js](https://github.com/wordup-dev/wordup-cli/blob/v0.2.0/src/commands/stop.js)_
 
 ## `wordup wpcli COMMAND`
 
@@ -275,7 +279,7 @@ DESCRIPTION
   As an example: wordup wpcli post list
 ```
 
-_See code: [src/commands/wpcli.js](https://github.com/wordup-dev/wordup-cli/blob/v0.1.7/src/commands/wpcli.js)_
+_See code: [src/commands/wpcli.js](https://github.com/wordup-dev/wordup-cli/blob/v0.2.0/src/commands/wpcli.js)_
 <!-- commandsstop -->
 
 # Learn more
