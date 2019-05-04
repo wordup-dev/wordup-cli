@@ -126,8 +126,8 @@ class InstallationPrompt {
       name: 'email',
       message: 'Admin email',
       validate: function (val) {
-        if (!val) {
-          return 'Please provide at least a dummy E-Mail'
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
+          return 'Please provide at least a dummy E-Mail like test@example.com'
         }
         return true
       },
