@@ -5,55 +5,81 @@ const fs = require('fs')
 
 
 class WordupInitGenerator extends Generator {
+
+  wordupProjectPathValid(val) {
+    if(!val){
+      return false
+    }
+  
+    if (!val.match(/^([a-z]|\_)/i)) {
+      return 'Please start with a letter'
+    }
+  
+    const newPath = this.destinationPath(slugify(val, {lower: true}))
+    if(fs.existsSync(newPath)){
+      return 'The folder in your current directory already exists, please choose a different name'
+    }
+    return true
+  }
+
   async prompting() {
-    this.answers = await this.prompt([{
-      type: 'input',
-      name: 'projectName',
-      message: "What's the name of your new project",
-      validate: function (val) {
-        if (!val.match(/^([a-z]|\_)/i)) {
-          return 'Please start with a letter'
-        }
 
-        if (fs.existsSync(slugify(val, {lower: true}))) {
-          return 'The folder in your current directory already exists, please choose a different name'
-        }
-        return true
-      },
-      filter: function(val) {
-        return val.trim()
+    if(process.env.WORDUP_INIT_PATH){
+      //Create directly a new project without prompting 
+      const validPath = this.wordupProjectPathValid(this.options.projectName)
+      if (validPath !== true) {
+        console.log(validPath)
+        process.exit(1)
       }
-    },
-    {
-      type: 'list',
-      name: 'projectType',
-      message: 'What do you want do develop',
-      choices: [{name:'A WordPress plugin', value: 'plugins'},{name:'A WordPress theme', value: 'themes'}],
-    },
-    {
-      type: 'confirm',
-      name: 'scaffold',
-      message: 'Scaffold src with the official WordPress boilerplate code',
-    },
-    {
-      type: 'input',
-      name: 'homepage',
-      message: 'Homepage of your project (optional)',
-    },
-    {
-      type: 'input',
-      name: 'repository',
-      message: 'Repository URL (optional)',
-    },
-      /* {
-            type: 'confirm',
-            name: 'custom_compose',
-            message: 'Create a custom docker-compose file for this project',
-            default:false
-          } */
-    ])
 
-    
+      this.answers = {
+        projectName: this.options.projectName,
+        projectType: this.options.projectType,
+        scaffold: true
+      }
+    }else{
+
+      this.answers = await this.prompt([{
+        type: 'input',
+        name: 'projectName',
+        message: "What's the name of your new project",
+        validate: (val) => this.wordupProjectPathValid(val),
+        default: this.options.projectName || undefined,
+        filter: function(val) {
+          return val.trim()
+        }
+      },
+      {
+        type: 'list',
+        name: 'projectType',
+        message: 'What do you want do develop',
+        default: this.options.projectType || '',
+        choices: [{name:'A WordPress plugin', value: 'plugins'},{name:'A WordPress theme', value: 'themes'}],
+      },
+      {
+        type: 'confirm',
+        name: 'scaffold',
+        message: 'Scaffold src with the official WordPress boilerplate code',
+      },
+      {
+        type: 'input',
+        name: 'homepage',
+        message: 'Homepage of your project (optional)',
+      },
+      {
+        type: 'input',
+        name: 'repository',
+        message: 'Repository URL (optional)',
+      },
+        /* {
+              type: 'confirm',
+              name: 'custom_compose',
+              message: 'Create a custom docker-compose file for this project',
+              default:false
+            } */
+      ])
+    }
+
   }
 
   writing() {
@@ -98,6 +124,15 @@ class WordupInitGenerator extends Generator {
     this.wordupPackage.type = this.answers.projectType
     this.wordupPackage.projectName = this.answers.projectName
     this.wordupPackage.slug = (this.answers.projectType === 'plugins') ? projectNameSlug + '/' + projectNameSlug + '.php' : projectNameSlug
+
+    //This a custom hook, to insert wpInstall parameters at the installation level
+    if(process.env.WORDUP_INIT_WP_INSTALL){
+      const wpInstall = JSON.parse(Buffer.from(process.env.WORDUP_INIT_WP_INSTALL, 'base64').toString('utf8'))
+      if(wpInstall.values){
+        this.wordupPackage.wpInstall = wpInstall.values
+      }
+    }
+
 
     //Writing package.json
     const {engines, name, version} = require('../../package.json')

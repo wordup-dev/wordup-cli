@@ -31,7 +31,7 @@ class StopCommand extends Command {
       this.error('Could not find a running wordup project', {exit: 6})
     }
 
-    await this.customLogs('Stop wordup', (resolve, reject, showLogs) => {
+    await this.customLogs('Stop '+(deleteAll ? '& delete ' : '')+'wordup', (resolve, reject, showLogs) => {
       shell.exec('docker-compose down' + (deleteAll ? ' -v' : ''), {silent: !showLogs}, function (code, _stdout, _stderr) {
         if (code === 0 && projectId) {
           config.set('projects.' + projectId + '.listeningOnPort', false)
