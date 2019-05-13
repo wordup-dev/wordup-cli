@@ -48,8 +48,9 @@ class InstallCommand extends Command {
       wordupConnect = wpInstall.config
     }else if(!wordupArchive && !wordupConnect && wpInstall.type === 'new'){
       if(wpInstall.config.siteUrl && !flags.siteurl) flags.siteurl = wpInstall.config.siteUrl
+      if(project.wPkg('port') && (flags.port !== 8000)) flags.port = project.wPkg('port')
     }
-    
+
     let installParams = ''
     let addVolumes = ''
 

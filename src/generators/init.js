@@ -151,7 +151,7 @@ class WordupInitGenerator extends Generator {
     }
 
     const entryPoint = process.env._ || ''
-    if(entryPoint.endsWith('npx')){
+    if(entryPoint.endsWith('npx') || process.env.NPX_CLI_JS){
       pjson.devDependencies = {
         "wordup-cli": "^"+version
       }

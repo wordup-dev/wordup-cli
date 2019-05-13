@@ -173,11 +173,24 @@ class Project {
   }
 
   isWordupRunning(msg,checkOwn=false) {
-    const runningProjectsStr = shell.exec('docker ps --filter "label=wordup.dev.project" --format \'{{.Label "wordup.dev.project"}}\'', {silent: true}).stdout.trim()
+    let runningProjectNames = [];
+
+    //Because of windows bug, --format {{.Label "wordup.dev.project"}} can not be used
+    const runningProjectsStr = shell.exec('docker ps --filter "label=wordup.dev.project" --format="{{.Labels}}"', {silent: true}).stdout.trim()
     const runningProjects = runningProjectsStr.split('\n')
     if (runningProjectsStr && runningProjects.length > 0) {
+      runningProjects.forEach((container)=> {
+        const labels = container.split(',')
+        const projectName = labels.find((el) => el.startsWith('wordup.dev.project'))
+        if(projectName){
+          runningProjectNames.push(projectName.replace('wordup.dev.project=',''))
+        }
+      })
+    }
 
-      if (runningProjects.indexOf(this.wPkg('slugName')) >= 0) {
+    if (runningProjectNames.length > 0) {
+
+      if (runningProjectNames.indexOf(this.wPkg('slugName')) >= 0) {
           if(!checkOwn){
             this.log('This project is already running')
           }
@@ -186,11 +199,11 @@ class Project {
           return false
       }
 
-      this.log('Some wordup projects are already running:', runningProjects.toString(',  '))
+      this.log('Some wordup projects are already running:', runningProjectNames.toString(',  '))
       this.log('You could stop it by running: ')
       this.log('')
 
-      runningProjects.forEach(item => {
+      runningProjectNames.forEach(item => {
         this.log(chalk.bgBlue('wordup stop --project=' + item))
       })
 
