@@ -286,6 +286,12 @@ DESCRIPTION
 _See code: [src/commands/wpcli.js](https://github.com/wordup-dev/wordup-cli/blob/v0.2.3/src/commands/wpcli.js)_
 <!-- commandsstop -->
 
+# Tutorial
+
+Check out the interactive tutorial on Google Cloud Shell: 
+
+[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://console.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https%3A%2F%2Fgithub.com%2Fwordup-dev%2Fcloud-shell-tutorial&cloudshell_tutorial=wordup-tutorial.md)
+
 # Learn more
 
 To learn more about wordup in general, visit: https://wordup.dev
