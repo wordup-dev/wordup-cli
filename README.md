@@ -40,7 +40,7 @@ What you can do with wordup-cli:
 
 # Examples
 
-Check out this [VIDEO](https://wordup.dev/#video) on our website to see how fast you can setup a new WordPress dev environment.
+Checkout this [VIDEO](https://wordup.dev/#video) on our website to see how fast you can setup a new WordPress dev environment.
 
 # Installation / Requirements 
 
@@ -288,7 +288,7 @@ _See code: [src/commands/wpcli.js](https://github.com/wordup-dev/wordup-cli/blob
 
 # Tutorial
 
-Check out the interactive tutorial on Google Cloud Shell: 
+Checkout the interactive tutorial on Google Cloud Shell: 
 
 [![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://console.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https%3A%2F%2Fgithub.com%2Fwordup-dev%2Fcloud-shell-tutorial&cloudshell_tutorial=wordup-tutorial.md)
 
