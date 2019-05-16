@@ -143,15 +143,19 @@ class WordupInitGenerator extends Generator {
       private:true,
       engines: engines,
       scripts: {
-        start:'npx wordup start || true',
-        build:'npx wordup export',
-        postinstall:'npx wordup install || true'
+        start:'wordup start || true',
+        build:'wordup export',
+        postinstall:'wordup install || true'
       },
       wordup: {...this.wordupPackage}
     }
 
+    //Add wordup-cli if init command was executed by npx itself or a different programm
     const entryPoint = process.env._ || ''
-    if(entryPoint.endsWith('npx') || process.env.NPX_CLI_JS){
+    if(entryPoint.endsWith('npx') || process.env.NPX_CLI_JS || process.env.WORDUP_INIT_PATH){
+      pjson.scripts.start = 'npx wordup start || true'
+      pjson.scripts.build = 'npx wordup export'
+      pjson.scripts.postinstall = 'npx wordup install || true'
       pjson.devDependencies = {
         "wordup-cli": "^"+version
       }
