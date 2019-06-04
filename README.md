@@ -296,7 +296,7 @@ Checkout the interactive tutorial on Google Cloud Shell:
 
 # Wordup for Visual Studio Code
 
-If you use VSCode for your development you can download our [VSCode extension](https://marketplace.visualstudio.com/items?itemName=wordup.wordup-code). This extension will integrate all wordup features in your favorite editor.
+If you use VSCode for your development, you can install our [VSCode extension](https://marketplace.visualstudio.com/items?itemName=wordup.wordup-code). This extension will integrate all wordup features in your favorite editor.
 
 # Learn more
 
