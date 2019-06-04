@@ -6,6 +6,7 @@ Wordup CLI
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
 [![Version](https://img.shields.io/npm/v/wordup-cli.svg)](https://npmjs.org/package/wordup-cli)
 [![Downloads/week](https://img.shields.io/npm/dw/wordup-cli.svg)](https://npmjs.org/package/wordup-cli)
+[![Twitter Follow](https://img.shields.io/twitter/follow/wordup_dev.svg?label=%40wordup_dev&style=social)](https://twitter.com/wordup_dev)
 
 
 Wordup CLI is an open-source development toolkit for setting up and managing your local WordPress Theme/Plugin development, so that you can totally focus on coding.
@@ -293,15 +294,17 @@ Checkout the interactive tutorial on Google Cloud Shell:
 
 [![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://console.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https%3A%2F%2Fgithub.com%2Fwordup-dev%2Fcloud-shell-tutorial&cloudshell_tutorial=wordup-tutorial.md)
 
+# Wordup for Visual Studio Code
+
+If you use VSCode for your development you can download our [VSCode extension](https://marketplace.visualstudio.com/items?itemName=wordup.wordup-code). This extension will integrate all wordup features in your favorite editor.
+
 # Learn more
 
 To learn more about wordup in general, visit: https://wordup.dev
 
-# Contributing
+# License / Contributing
 
 wordup-cli is an open-source project. If you are interested in contributing to wordup-cli, 
 fell free to join us.
 
-# License
-
-See the [LICENSE](LICENSE) file for details
+See the [LICENSE](LICENSE) file for details.
