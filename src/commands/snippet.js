@@ -35,7 +35,7 @@ SnippetCommand.description = `Add code snippets like Gutenberg blocks, custom po
 This code snippets will be added to your current project source code. You can add as many as you want.
 Just include the generated php file in your main project file.
 
-As an example: wordup add block MyGutenbergBlock
+As an example: wordup snippet block MyGutenbergBlock
 `
 
 SnippetCommand.args = [
