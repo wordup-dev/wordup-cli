@@ -59,7 +59,19 @@ class WordupInitGenerator extends Generator {
       {
         type: 'confirm',
         name: 'scaffold',
-        message: 'Scaffold src with the official WordPress boilerplate code',
+        message: 'Scaffold project with boilerplate code',
+      },
+      {
+        type: 'list',
+        name: 'scaffoldType',
+        when: function (answers) {
+          return (answers.scaffold === true && answers.projectType === 'themes')
+        },
+        message: 'Which scaffold project do you want to use',
+        choices: [
+          {name:'Underscore (WordPress official)', value: 'underscore'},
+          {name:'Understrap', value: 'understrap'}
+        ],
       },
       {
         type: 'input',
@@ -98,7 +110,7 @@ class WordupInitGenerator extends Generator {
       path: projectPath,
       installedOnPort: false,
       listeningOnPort: false,
-      scaffoldOnInstall: this.answers.scaffold,
+      scaffoldOnInstall:  this.answers.scaffoldType ? this.answers.scaffoldType : this.answers.scaffold,
       created:Math.floor(Date.now() / 1000)
     })
 

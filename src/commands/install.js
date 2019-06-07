@@ -92,8 +92,8 @@ class InstallCommand extends Command {
 
     // Check if scaffold src files
     const projectConf = project.config || false
-    if (projectConf && projectConf.scaffoldOnInstall === true) {
-      installParams += ' --scaffold'
+    if (projectConf && projectConf.scaffoldOnInstall !== false) {
+      installParams += ' --scaffold'+(projectConf.scaffoldOnInstall !== true ? '='+projectConf.scaffoldOnInstall : '')
     }
 
     //Set wp url. Only url OR port is allowed

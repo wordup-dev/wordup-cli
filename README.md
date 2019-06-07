@@ -33,7 +33,7 @@ What you can do with wordup-cli:
 
 * 💡**Rapidly test new ideas** - And develop your new WordPress theme/plugin projects in wordup. 
 * ⏱**Speed up your development** - Install a new project with a blank WordPress installation in a matter of minutes
-* 🛠️**Boilerplate** - Scaffold your theme/plugin with the official source code from WordPress (e.g. [underscore](https://github.com/automattic/_s))
+* 🛠️**Boilerplate** - Scaffold your theme/plugin with the official source code from WordPress (e.g. [underscore](https://github.com/automattic/_s)). You can also add code snippets like *Gutenberg* blocks to your source code.
 * ⚙️**Automatic installation of dependencies** - Automatically download and activate public WordPress Plugins/Themes or even Github hosted projects (like e.g. [wp-graphql](https://github.com/wp-graphql/wp-graphql))
 * 🚀**Easy portability** - Export your theme/project or your whole WordPress installation. So that you can install it on a remote server.
 * 📦**Backup your installation** - And (re)install a project from an exported wordup project.
