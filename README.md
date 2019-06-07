@@ -90,7 +90,7 @@ $ npm install -g wordup-cli
 $ wordup COMMAND
 running command...
 $ wordup (-v|--version|version)
-wordup-cli/0.2.9 darwin-x64 node-v10.15.0
+wordup-cli/0.3.0 darwin-x64 node-v10.15.0
 $ wordup --help [COMMAND]
 USAGE
   $ wordup COMMAND
@@ -104,6 +104,7 @@ USAGE
 * [`wordup init`](#wordup-init)
 * [`wordup install`](#wordup-install)
 * [`wordup list`](#wordup-list)
+* [`wordup snippet TYPE NAME`](#wordup-snippet-type-name)
 * [`wordup start`](#wordup-start)
 * [`wordup stop`](#wordup-stop)
 * [`wordup wpcli COMMAND`](#wordup-wpcli-command)
@@ -129,7 +130,7 @@ DESCRIPTION
   for backing up your current development stack.
 ```
 
-_See code: [src/commands/export.js](https://github.com/wordup-dev/wordup-cli/blob/v0.2.9/src/commands/export.js)_
+_See code: [src/commands/export.js](https://github.com/wordup-dev/wordup-cli/blob/v0.3.0/src/commands/export.js)_
 
 ## `wordup help [COMMAND]`
 
@@ -168,7 +169,7 @@ DESCRIPTION
   You can stop this behavior with --no-autoinstall
 ```
 
-_See code: [src/commands/init.js](https://github.com/wordup-dev/wordup-cli/blob/v0.2.9/src/commands/init.js)_
+_See code: [src/commands/init.js](https://github.com/wordup-dev/wordup-cli/blob/v0.3.0/src/commands/init.js)_
 
 ## `wordup install`
 
@@ -197,7 +198,7 @@ DESCRIPTION
   Note: Flags in this command overrule the config of your package.json.
 ```
 
-_See code: [src/commands/install.js](https://github.com/wordup-dev/wordup-cli/blob/v0.2.9/src/commands/install.js)_
+_See code: [src/commands/install.js](https://github.com/wordup-dev/wordup-cli/blob/v0.3.0/src/commands/install.js)_
 
 ## `wordup list`
 
@@ -218,7 +219,32 @@ ALIASES
   $ wordup ls
 ```
 
-_See code: [src/commands/list.js](https://github.com/wordup-dev/wordup-cli/blob/v0.2.9/src/commands/list.js)_
+_See code: [src/commands/list.js](https://github.com/wordup-dev/wordup-cli/blob/v0.3.0/src/commands/list.js)_
+
+## `wordup snippet TYPE NAME`
+
+Add code snippets like Gutenberg blocks, custom post types or taxonomies to your code
+
+```
+USAGE
+  $ wordup snippet TYPE NAME
+
+ARGUMENTS
+  TYPE  (block|post-type|taxonomy) What type do you want to add to your project
+  NAME  Name of the element you want to add
+
+OPTIONS
+  --logs  Shows all stdout logs of this process
+
+DESCRIPTION
+  ...
+  This code snippets will be added to your current project source code. You can add as many as you want.
+  Just include the generated php file in your main project file.
+
+  As an example: wordup add block MyGutenbergBlock
+```
+
+_See code: [src/commands/snippet.js](https://github.com/wordup-dev/wordup-cli/blob/v0.3.0/src/commands/snippet.js)_
 
 ## `wordup start`
 
@@ -241,7 +267,7 @@ ALIASES
   $ wordup run
 ```
 
-_See code: [src/commands/start.js](https://github.com/wordup-dev/wordup-cli/blob/v0.2.9/src/commands/start.js)_
+_See code: [src/commands/start.js](https://github.com/wordup-dev/wordup-cli/blob/v0.3.0/src/commands/start.js)_
 
 ## `wordup stop`
 
@@ -264,7 +290,7 @@ DESCRIPTION
   Optionally you can use -d to delete the whole installation, this includes all files in your WordPress installation.
 ```
 
-_See code: [src/commands/stop.js](https://github.com/wordup-dev/wordup-cli/blob/v0.2.9/src/commands/stop.js)_
+_See code: [src/commands/stop.js](https://github.com/wordup-dev/wordup-cli/blob/v0.3.0/src/commands/stop.js)_
 
 ## `wordup wpcli COMMAND`
 
@@ -285,7 +311,7 @@ DESCRIPTION
   As an example: wordup wpcli post list
 ```
 
-_See code: [src/commands/wpcli.js](https://github.com/wordup-dev/wordup-cli/blob/v0.2.9/src/commands/wpcli.js)_
+_See code: [src/commands/wpcli.js](https://github.com/wordup-dev/wordup-cli/blob/v0.3.0/src/commands/wpcli.js)_
 <!-- commandsstop -->
 
 # Tutorial
