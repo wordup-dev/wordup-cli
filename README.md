@@ -91,7 +91,7 @@ $ npm install -g wordup-cli
 $ wordup COMMAND
 running command...
 $ wordup (-v|--version|version)
-wordup-cli/0.3.0 darwin-x64 node-v10.15.0
+wordup-cli/0.4.0 darwin-x64 node-v10.15.0
 $ wordup --help [COMMAND]
 USAGE
   $ wordup COMMAND
@@ -131,7 +131,7 @@ DESCRIPTION
   for backing up your current development stack.
 ```
 
-_See code: [src/commands/export.js](https://github.com/wordup-dev/wordup-cli/blob/v0.3.0/src/commands/export.js)_
+_See code: [src/commands/export.js](https://github.com/wordup-dev/wordup-cli/blob/v0.4.0/src/commands/export.js)_
 
 ## `wordup help [COMMAND]`
 
@@ -148,7 +148,7 @@ OPTIONS
   --all  see all commands in CLI
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.1.6/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.0/src/commands/help.ts)_
 
 ## `wordup init`
 
@@ -170,7 +170,7 @@ DESCRIPTION
   You can stop this behavior with --no-autoinstall
 ```
 
-_See code: [src/commands/init.js](https://github.com/wordup-dev/wordup-cli/blob/v0.3.0/src/commands/init.js)_
+_See code: [src/commands/init.js](https://github.com/wordup-dev/wordup-cli/blob/v0.4.0/src/commands/init.js)_
 
 ## `wordup install`
 
@@ -181,7 +181,6 @@ USAGE
   $ wordup install
 
 OPTIONS
-  -f, --force                Force the installation of the project
   -p, --port=port            [default: 8000] Install on a different port
   --archive=archive          Install from a wordup archive.
   --connect=connect          Install from a WordPress running website.
@@ -192,14 +191,19 @@ OPTIONS
 
 DESCRIPTION
   ...
-  If there is no wordup installation config in your package.json, a setup to config for your installation will be shown.
+  If there is no wordup installation config in your package.json, a setup for your installation will be shown.
   You can set a custom site url for WordPress, but please be aware that you have to proxy this url to your 
   localhost:port
+
+  The web frontend for the catched emails (MailHog) is available on localhost:[WORDPRESS_PORT + 1]
+
+  Wordup will assign automatically a different default port, if the default port of 8000 is taken by another wordup 
+  project.
 
   Note: Flags in this command overrule the config of your package.json.
 ```
 
-_See code: [src/commands/install.js](https://github.com/wordup-dev/wordup-cli/blob/v0.3.0/src/commands/install.js)_
+_See code: [src/commands/install.js](https://github.com/wordup-dev/wordup-cli/blob/v0.4.0/src/commands/install.js)_
 
 ## `wordup list`
 
@@ -220,7 +224,7 @@ ALIASES
   $ wordup ls
 ```
 
-_See code: [src/commands/list.js](https://github.com/wordup-dev/wordup-cli/blob/v0.3.0/src/commands/list.js)_
+_See code: [src/commands/list.js](https://github.com/wordup-dev/wordup-cli/blob/v0.4.0/src/commands/list.js)_
 
 ## `wordup snippet TYPE NAME`
 
@@ -242,10 +246,10 @@ DESCRIPTION
   This code snippets will be added to your current project source code. You can add as many as you want.
   Just include the generated php file in your main project file.
 
-  As an example: wordup add block MyGutenbergBlock
+  As an example: wordup snippet block MyGutenbergBlock
 ```
 
-_See code: [src/commands/snippet.js](https://github.com/wordup-dev/wordup-cli/blob/v0.3.0/src/commands/snippet.js)_
+_See code: [src/commands/snippet.js](https://github.com/wordup-dev/wordup-cli/blob/v0.4.0/src/commands/snippet.js)_
 
 ## `wordup start`
 
@@ -256,7 +260,6 @@ USAGE
   $ wordup start
 
 OPTIONS
-  -f, --force      Force the start of the project
   -p, --port=port  Overwrite installed port
   --logs           Shows all stdout logs of this process
 
@@ -268,7 +271,7 @@ ALIASES
   $ wordup run
 ```
 
-_See code: [src/commands/start.js](https://github.com/wordup-dev/wordup-cli/blob/v0.3.0/src/commands/start.js)_
+_See code: [src/commands/start.js](https://github.com/wordup-dev/wordup-cli/blob/v0.4.0/src/commands/start.js)_
 
 ## `wordup stop`
 
@@ -291,7 +294,7 @@ DESCRIPTION
   Optionally you can use -d to delete the whole installation, this includes all files in your WordPress installation.
 ```
 
-_See code: [src/commands/stop.js](https://github.com/wordup-dev/wordup-cli/blob/v0.3.0/src/commands/stop.js)_
+_See code: [src/commands/stop.js](https://github.com/wordup-dev/wordup-cli/blob/v0.4.0/src/commands/stop.js)_
 
 ## `wordup wpcli COMMAND`
 
@@ -312,7 +315,7 @@ DESCRIPTION
   As an example: wordup wpcli post list
 ```
 
-_See code: [src/commands/wpcli.js](https://github.com/wordup-dev/wordup-cli/blob/v0.3.0/src/commands/wpcli.js)_
+_See code: [src/commands/wpcli.js](https://github.com/wordup-dev/wordup-cli/blob/v0.4.0/src/commands/wpcli.js)_
 <!-- commandsstop -->
 
 # Tutorial
