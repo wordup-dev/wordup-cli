@@ -31,7 +31,7 @@ describe('export', () => {
   test
   .stdout()
   .stub(Project.prototype, 'isExecWordupProject', () => true)
-  .stub(Project.prototype, 'isWordupRunning', () => false)
+  .stub(Project.prototype, 'isWordupProjectRunning', () => false)
   .command(['export', 'sql'])
   .exit(4)
   .it('Exit with status 4 if not running')
@@ -42,7 +42,7 @@ describe('export', () => {
   test
   .stdout()
   .stub(Project.prototype, 'isExecWordupProject', () => true)
-  .stub(Project.prototype, 'isWordupRunning', () => true)
+  .stub(Project.prototype, 'isWordupProjectRunning', () => true)
   .stub(Project.prototype, 'getWordupPkgB64', () => packageB64)
   .stub(process, 'cwd', () => './')
   .stub(shell, 'exec', shellExec)

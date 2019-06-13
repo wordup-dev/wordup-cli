@@ -18,6 +18,7 @@ services:
   wordpress:
     depends_on:
       - db
+      - mail
     image: wordup-wp:1.0
     build: 
       context: ${WORDUP_DOCKERFILE_PATH:?err}
@@ -68,6 +69,13 @@ services:
       #- ./config/php.conf.ini:/usr/local/etc/php/conf.d/conf.ini
       - ./src:/src
       - ./dist:/dist
+
+  mail:
+    image: mailhog/mailhog
+    labels:
+      - "wordup.dev"
+    ports:
+      - "${WORDUP_MAIL_PORT:-8025}:8025"
 
 volumes:
   db_data: {}

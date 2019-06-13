@@ -13,7 +13,7 @@ class ExportCommand extends Command {
       this.exit(1)
     }
 
-    if(!project.isWordupRunning('', true)){
+    if(!project.isWordupProjectRunning()){
       this.log('Your project is not running, please use ' + chalk.bgBlue('wordup install') + ' or '+chalk.bgBlue('wordup start') )
       this.exit(4)
     }

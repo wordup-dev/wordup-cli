@@ -18,7 +18,7 @@ describe('install', () => {
   test
   .stdout()
   .stub(Project.prototype, 'isExecWordupProject', () => true)
-  .stub(Project.prototype, 'isWordupRunning', () => true)
+  .stub(Project.prototype, 'isWordupProjectRunning', () => true)
   .command(['install'])
   .exit(5)
   .it('exits with status 5 when wordup is running')
@@ -26,7 +26,7 @@ describe('install', () => {
   test
   .stdout()
   .stub(Project.prototype, 'isExecWordupProject', () => true)
-  .stub(Project.prototype, 'isWordupRunning', () => false)
+  .stub(Project.prototype, 'isWordupProjectRunning', () => false)
   .stub(Project.prototype, 'isInstalled', () => true)
   .command(['install'])
   .exit(4)
@@ -38,7 +38,7 @@ describe('install', () => {
   test
   .stderr()
   .stub(Project.prototype, 'isExecWordupProject', () => true)
-  .stub(Project.prototype, 'isWordupRunning', () => false)
+  .stub(Project.prototype, 'isWordupProjectRunning', () => false)
   .stub(Project.prototype, 'getWordupPkgInstall',() => {
     return {
     'type':'new',

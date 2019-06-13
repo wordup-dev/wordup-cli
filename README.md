@@ -39,6 +39,7 @@ What you can do with wordup-cli:
 * 📦**Backup your installation** - And (re)install a project from an exported wordup project.
 * 🤩**Hassle-free remote WordPress connection** - Install your project, based on an existing WordPress hosted website (with the [wordup-connect](https://github.com/wordup-dev/wordup-connect) plugin). Use this feature for example to test major WordPress updates with ease locally.
 * 👾**Share your stack** - wordup is the easiest way to share your WordPress project with the world or just your team members. Just type:  `git clone`, and then `wordup install`
+* ✉️**Catch emails** - Catch all emails from WordPress and view the outgoing emails in a web UI
 
 # Examples
 

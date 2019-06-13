@@ -172,7 +172,7 @@ class Project {
     return this.config && (this.config.installedOnPort !== false)
   }
 
-  isWordupRunning(msg,checkOwn=false) {
+  isWordupProjectRunning(showMsg=false) {
     let runningProjectNames = [];
 
     //Because of windows bug, --format {{.Label "wordup.dev.project"}} can not be used
@@ -189,36 +189,54 @@ class Project {
     }
 
     if (runningProjectNames.length > 0) {
-
+      this.log('')
+      this.log('--- Currently running wordup projects:', runningProjectNames.toString(', ')+' ---')
+      this.log('')
       if (runningProjectNames.indexOf(this.wPkg('slugName')) >= 0) {
-          if(!checkOwn){
-            this.log('This project is already running')
+          if(showMsg){
+            this.log('The project ('+this.wPkg('slugName')+') is already running. You can stop it with: '+chalk.bgBlue('wordup stop'))
           }
           return true
-      }else if(checkOwn){
-          return false
       }
-
-      this.log('Some wordup projects are already running:', runningProjectNames.toString(',  '))
-      this.log('You could stop it by running: ')
-      this.log('')
-
-      runningProjectNames.forEach(item => {
-        this.log(chalk.bgBlue('wordup stop --project=' + item))
-      })
-
-      if (msg) {
-        this.log('')
-        this.log(msg)
-      }
+      
 
       // console.log(chalk.bgBlue('docker rm -f $(docker ps -q -a --filter "label=wordup.dev")'));
       // console.log(chalk.bgBlue('docker volume rm -f '+docker+'_db_data '+docker+'_wp_data'));
       // console.log(chalk.bgBlue('docker network rm '+docker+'_default'));
 
-      return true
     }
     return false
+  }
+
+  assignNewPort(defaultPort) {
+    const projects = this._wordupConfig.get('projects') || []
+
+    let ports = []
+
+    Object.keys(projects).forEach(key => {
+      if(projects[key].listeningOnPort) {
+        ports.push(parseInt(projects[key].listeningOnPort,10))
+      }
+    })
+
+    if(ports.length > 0){
+      ports.sort((a, b) => a - b)
+      let newPort = undefined;
+      let testPort = parseInt(defaultPort,10)
+      do {
+        const closePort = ports.find(function(port) {
+          return port === testPort || testPort < (port + 10)
+        });
+        if(!closePort){
+          newPort = testPort
+        }else{
+          testPort = testPort + 10
+        }
+      } while (!newPort)
+      return String(newPort)
+    }
+    
+    return String(defaultPort)
   }
 
   getWordupPkgB64() {
@@ -265,6 +283,7 @@ class Project {
     shell.env.COMPOSE_PROJECT_NAME = this.wPkg('slugName')
     shell.env.WORDUP_PROJECT = this.wPkg('slugName')
     shell.env.WORDUP_PORT = port
+    shell.env.WORDUP_MAIL_PORT = parseInt(port,10) + 1
 
     //This is a hack to prevent file permission issues in bind mount volumes in docker-compose 
     const srcFolder = this.getProjectPath('src')

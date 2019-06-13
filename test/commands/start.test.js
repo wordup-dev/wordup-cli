@@ -12,7 +12,7 @@ describe('start', () => {
   test
   .stdout()
   .stub(Project.prototype, 'isExecWordupProject', () => true)
-  .stub(Project.prototype, 'isWordupRunning', () => true)
+  .stub(Project.prototype, 'isWordupProjectRunning', () => true)
   .command(['start'])
   .exit(5)
   .it('exits with status 5 when wordup is already running')
@@ -20,7 +20,7 @@ describe('start', () => {
   test
   .stdout()
   .stub(Project.prototype, 'isExecWordupProject', () => true)
-  .stub(Project.prototype, 'isWordupRunning', () => false)
+  .stub(Project.prototype, 'isWordupProjectRunning', () => false)
   .stub(Project.prototype, 'isInstalled', () => false)
   .command(['start'])
   .exit(4)

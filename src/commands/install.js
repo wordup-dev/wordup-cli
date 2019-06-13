@@ -3,6 +3,7 @@ const {flags} = require('@oclif/command')
 const shell = require('shelljs')
 const open = require('open')
 const fs = require('fs')
+const chalk = require('chalk')
 
 const Command =  require('../command-base')
 const utils =  require('../lib/utils')
@@ -18,14 +19,19 @@ class InstallCommand extends Command {
       this.exit(1)
     }
 
-    if (!forceInstall && project.isWordupRunning('Or use --force to install this project.')) {
+    if (project.isWordupProjectRunning(true)) {
       this.exit(5)
     }
 
     // Check if project is already installed
-    if (!forceInstall && project.isInstalled()) {
-      this.log('The development server and volumes are already installed. To delete this installation use: wordup stop --delete.')
+    if (project.isInstalled()) {
+      this.log('The development server and volumes are already installed. To delete this installation use: '+chalk.bgBlue('wordup stop --delete'))
       this.exit(4)
+    }
+
+    //If no custom port passed: assign a new port
+    if(flags.port === '8000' && !project.wPkg('port')){
+      flags.port = project.assignNewPort(flags.port)
     }
 
     // Get the installation config from package.json
@@ -37,6 +43,7 @@ class InstallCommand extends Command {
     const installPrompts = new InstallationPrompt(project)
     if (flags.prompt || (!wordupArchive && !wordupConnect && !wpInstall)) {
       await installPrompts.init()
+      this.log('')
       //Get config again
       wpInstall = project.getWordupPkgInstall()
     }
@@ -48,8 +55,10 @@ class InstallCommand extends Command {
       wordupConnect = wpInstall.config
     }else if(!wordupArchive && !wordupConnect && wpInstall.type === 'new'){
       if(wpInstall.config.siteUrl && !flags.siteurl) flags.siteurl = wpInstall.config.siteUrl
-      if(project.wPkg('port') && (flags.port !== 8000)) flags.port = project.wPkg('port')
     }
+
+    //check if there is a port number in package.json. Use it if no custom port is specified
+    if(project.wPkg('port') && (flags.port === '8000')) flags.port = project.wPkg('port')
 
     let installParams = ''
     let addVolumes = ''
@@ -137,8 +146,12 @@ class InstallCommand extends Command {
         project.setProjectConf('listeningOnPort', flags.port)
         project.setProjectConf('scaffoldOnInstall', false)
         
-        this.log('"'+project.wPkg('projectName') + '" successfully installed. Listening at http://localhost:' + flags.port)
+        this.log('"'+project.wPkg('projectName') + '" successfully installed.')
         this.log('')
+        this.log('WordPress listening at http://localhost:' + flags.port)
+        this.log('MailHog (catches WordPress mails) listening at http://localhost:' + shell.env.WORDUP_MAIL_PORT)
+        this.log('')
+
         await open( (flags.siteurl ? flags.siteurl : 'http://localhost:' + flags.port)+'/wp-admin' , {wait: false})
       }else{
         this.error('There was an error with setting-up WordPress', {exit: 1})
@@ -153,8 +166,12 @@ class InstallCommand extends Command {
 
 InstallCommand.description = `Install and start the WordPress development server
 ...
-If there is no wordup installation config in your package.json, a setup to config for your installation will be shown.
+If there is no wordup installation config in your package.json, a setup for your installation will be shown.
 You can set a custom site url for WordPress, but please be aware that you have to proxy this url to your localhost:port
+
+The web frontend for the catched emails (MailHog) is available on localhost:[WORDPRESS_PORT + 1]
+
+Wordup will assign automatically a different default port, if the default port of 8000 is taken by another wordup project.
 
 Note: Flags in this command overrule the config of your package.json.
 `
@@ -163,7 +180,7 @@ InstallCommand.flags = {
   ...Command.flags,
   port: flags.string({char: 'p', description: 'Install on a different port', default:'8000'}),
   siteurl: flags.string({description: 'Specify a custom WordPress site url. Use --help for details.'}),
-  force: flags.boolean({char: 'f', description: 'Force the installation of the project'}),
+  force: flags.boolean({char: 'f', description: 'Force the installation of the project (deprecated)', hidden:true}),
   prompt: flags.boolean({description: 'If you want to do the setup again', exclusive: ['archive','connect']}),
   archive: flags.string({description: 'Install from a wordup archive.'}),
   connect: flags.string({description: 'Install from a WordPress running website.', exclusive: ['archive']}),

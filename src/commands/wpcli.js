@@ -10,7 +10,7 @@ class WpcliCommand extends Command {
       this.exit(5)
     }
 
-    if(!this.wordupProject.isWordupRunning('', true)){
+    if(!this.wordupProject.isWordupProjectRunning()){
       this.log('Your project is not running, please use '+chalk.bgBlue('wordup install') +' or '+chalk.bgBlue('wordup start') )
       this.exit(4)
     }

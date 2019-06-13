@@ -15,16 +15,16 @@ class StartCommand extends Command {
       this.exit(1)
     }
 
-    if (!forceStart && project.isWordupRunning('Or use --force to start this project.')) {
+    if (project.isWordupProjectRunning(true)) {
       this.exit(5)
     }
 
     if (!project.isInstalled()) {
-      this.log('Your current installation is not set up. Please run first ' + chalk.bgBlue('wordup install'))
+      this.log('This project installation is not set up. Please run first: ' + chalk.bgBlue('wordup install'))
       this.exit(4)
     }
 
-    const port = flags.port ? flags.port : project.config.installedOnPort
+    const port = flags.port ? flags.port : project.assignNewPort(project.config.installedOnPort)
     project.prepareDockerComposeUp(port)
 
     const startCode = await this.customLogs('Start wordup', (resolve, reject, showLogs) => {
@@ -38,7 +38,11 @@ class StartCommand extends Command {
     })
 
     if(startCode === 0){
-      this.log('"'+project.wPkg('projectName') + '" successfully started. Listening at http://localhost:' + port)
+      this.log('"'+project.wPkg('projectName') + '" successfully started.')
+      this.log('')
+      this.log('WordPress listening at http://localhost:' + port)
+      this.log('MailHog listening at http://localhost:' + shell.env.WORDUP_MAIL_PORT)
+      this.log('')
 
       const siteUrl = (project.config.customSiteUrl ? project.config.customSiteUrl : 'http://localhost:' + port)
       await open(siteUrl, {wait: false})
@@ -60,7 +64,7 @@ You can run only this command if your development stack is installed.
 StartCommand.flags = {
   ...Command.flags,
   port: flags.string({char: 'p', description: 'Overwrite installed port'}),
-  force: flags.boolean({char: 'f', description: 'Force the start of the project'}),
+  force: flags.boolean({char: 'f', description: 'Force the start of the project (deprecated)', hidden:true}),
 }
 
 module.exports = StartCommand
