@@ -2,8 +2,12 @@ const updateNotifier = require('update-notifier')
 
 module.exports = async function (options) {
     const argv = options.argv || []
+
+    const pkg = options.config.pjson
+    const notifier = updateNotifier({pkg:pkg})
+
     if(argv.indexOf("--json") === -1){
-        const pkg = options.config.pjson
-        updateNotifier({pkg:pkg}).notify({isGlobal:true})
+        //is-installed-globally could be used for npx installed packages
+        notifier.notify({isGlobal:true})
     }
 }
