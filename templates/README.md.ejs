@@ -40,7 +40,7 @@ DON'T delete this <%= type %> in the WP-Admin, you will lose your src files.
 That's why we also recommend to use a VCS like Git.
 
 <% if (type == 'plugin') { %>
-## Setup a Wordpress plugin
+## Setup a WordPress plugin
 
 Essential files for your WordPress plugin:
 
@@ -64,7 +64,7 @@ Create a file called `<%= slug %>.php` in /src folder with a doctype like this:
 <% } %>
 
 <% if (type == 'theme') { %>
-## Setup Wordpress theme
+## Setup WordPress theme
 
 There are two essential files for a WordPress theme:
 
@@ -87,6 +87,28 @@ Text Domain: <%= slug %>
 
 `index.php` file with the basic template for your theme.
 <% } %>
+
+## Add your own containers
+
+Because wordup is based on docker-compose, it's possible to extend a project with containers of your choice. 
+If you want to integrate for example phpMyAdmin, you just have to create a file called `docker-compose.yml` in the root folder of your project, with this content:
+
+```
+version: '3'
+
+services:
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    restart: always
+    environment:
+      - PMA_HOST=db
+      - PMA_USER=wordpress
+      - PMA_PASSWORD=wordpress
+    ports:
+      - 8080:80
+```
+
+That's it, all your wordup commands will stay the same. But now also phpMyAdmin is running on port 8080, when you start your project servers.
 
 ## Contributing
 
