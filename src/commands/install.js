@@ -57,7 +57,7 @@ class InstallCommand extends Command {
       if(wpInstall.config.siteUrl && !flags.siteurl) flags.siteurl = wpInstall.config.siteUrl
     }
 
-    //check if there is a port number in package.json. Use it if no custom port is specified
+    //check if there is a port number in config. Use it if no custom port is specified
     if(project.wPkg('port') && (flags.port === '8000')) flags.port = project.wPkg('port')
 
     let installParams = ''
@@ -133,7 +133,7 @@ class InstallCommand extends Command {
         },10000)
       })
       
-      const installCode = await this.customLogs('Setting-up WordPress based on your package.json settings', (resolve, reject, showLogs) => {
+      const installCode = await this.customLogs('Setting-up WordPress based on your .wordup/config.yml', (resolve, reject, showLogs) => {
         shell.exec('docker-compose --project-directory ' + project.getProjectPath() + ' run --rm ' + addVolumes + ' wordpress-cli wordup install ' + project.getWordupPkgB64() + installParams, {silent: !showLogs}, function (code, _stdout, _stderr) {
           resolve({done: '✔', code:code})
         })
@@ -146,11 +146,11 @@ class InstallCommand extends Command {
         project.setProjectConf('listeningOnPort', flags.port)
         project.setProjectConf('scaffoldOnInstall', false)
         
+        this.log('')
         this.log('"'+project.wPkg('projectName') + '" successfully installed.')
-        this.log('')
-        this.log('WordPress listening at http://localhost:' + flags.port)
-        this.log('MailHog (catches WordPress mails) listening at http://localhost:' + shell.env.WORDUP_MAIL_PORT)
-        this.log('')
+
+        //Print the urls and credentials
+        utils.printDevServerInfos(this.log, flags.port, shell.env.WORDUP_MAIL_PORT, project)
 
         await open( (flags.siteurl ? flags.siteurl : 'http://localhost:' + flags.port)+'/wp-admin' , {wait: false})
       }else{
@@ -166,7 +166,7 @@ class InstallCommand extends Command {
 
 InstallCommand.description = `Install and start the WordPress development server
 ...
-If there is no wordup installation config in your package.json, a setup for your installation will be shown.
+If there is no wpInstall config in .wordup/config.yml, a setup for your installation will be shown.
 You can set a custom site url for WordPress, but please be aware that you have to proxy this url to your localhost:port
 
 The web frontend for the catched emails (MailHog) is available on localhost:[WORDPRESS_PORT + 1]

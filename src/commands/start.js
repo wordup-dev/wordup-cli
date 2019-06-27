@@ -3,6 +3,7 @@ const Command =  require('../command-base')
 const shell = require('shelljs')
 const open = require('open')
 const chalk = require('chalk')
+const utils =  require('../lib/utils')
 
 class StartCommand extends Command {
   async run() {
@@ -38,11 +39,11 @@ class StartCommand extends Command {
     })
 
     if(startCode === 0){
+      this.log('')
       this.log('"'+project.wPkg('projectName') + '" successfully started.')
-      this.log('')
-      this.log('WordPress listening at http://localhost:' + port)
-      this.log('MailHog listening at http://localhost:' + shell.env.WORDUP_MAIL_PORT)
-      this.log('')
+
+      //Print the urls and credentials
+      utils.printDevServerInfos(this.log, port, shell.env.WORDUP_MAIL_PORT, project)
 
       const siteUrl = (project.config.customSiteUrl ? project.config.customSiteUrl : 'http://localhost:' + port)
       await open(siteUrl, {wait: false})

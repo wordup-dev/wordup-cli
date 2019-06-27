@@ -69,6 +69,7 @@ services:
       #- ./config/php.conf.ini:/usr/local/etc/php/conf.d/conf.ini
       - ./src:/src
       - ./dist:/dist
+      - ./.wordup:/wordup
 
   mail:
     image: mailhog/mailhog

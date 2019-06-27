@@ -19,10 +19,7 @@ or if it's already installed:
 $ wordup start
 ```
 
-Wordup uses the nodejs package.json file to save the project specific settings. 
-Feel free to change the package.json file for project specific needs (e.g. webpack). 
-
-Keep in mind: If you want to change the slug in package.json, you have to reinstall the project afterwards.
+In your project you will find a folder called .wordup for the project specific configuration. 
 
 ### Use wordup-cli locally
 
@@ -32,6 +29,65 @@ If you want run a wordup command from your local package,  use `npx` before `wor
 ```
 $ npx wordup start
 ```
+
+## Fixtures
+
+You can add fixtures to your WordPress installation. All fixtures are located in the .wordup folder:
+
+In the .wordup/media folder you can place your media files, which you need for developing.
+
+The .wordup/post and .wordup/page folder contain markdown files for each post/page. 
+The markdown files need to have an YAML front matter block, for example:
+
+```
+---
+title: My new WordPress project
+author: [Optional: name of the author]
+tags: [Optional: semicolon separated tags]
+category: [Optional: semicolon separated categories]
+menu: [Optional: semicolon separated menu names] 
+featured_image: [Optional: A file in your media folder]
+---
+
+#Headline
+
+A text
+```
+
+## Config
+
+The wordup config is located in .wordup/config.yml. Feel free to change the config.yml file for project specific needs. 
+
+An advanced config file with 2 users and one custom user role looks like this:
+
+```yaml
+# Your other project settings
+wpInstall:
+  title: My WordPress installation
+  language: en_US
+  version: latest
+  users:
+  - name: admin
+    password: 123456
+    email: admin@example.com
+    role: administrator
+  - name: editorName
+    password: 123456
+    email: editor@example.com
+    role: custom_role
+  roles:
+    - name: A Custom editor role
+      key: custom_role
+      clone_from: editor
+      capabilities:
+        - view_products
+        - read_products
+        - build_products
+```
+
+Notes: 
+* The first user in your config.yml will always be assigned as site owner.
+* Changes in configs and fixtures are only visible after executing `wordup install`
 
 ## Caution ⚠️
 
@@ -93,7 +149,7 @@ Text Domain: <%= slug %>
 Because wordup is based on docker-compose, it's possible to extend a project with containers of your choice. 
 If you want to integrate for example phpMyAdmin, you just have to create a file called `docker-compose.yml` in the root folder of your project, with this content:
 
-```
+```yaml
 version: '3'
 
 services:

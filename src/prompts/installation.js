@@ -5,7 +5,7 @@ const WpApiPrompt = require('./wp-api')
 
 class InstallationPrompt {
   constructor(project) {
-    this.project = project
+    this.project = project || undefined
     this.privateKey = undefined
   }
 
@@ -47,8 +47,12 @@ class InstallationPrompt {
     }]
 
     const answers = await inquirer.prompt(questions)
-
-    this.project.setWordupPkg('wpInstall','archive:'+answers.path)
+    const wpInstall = 'archive:'+answers.path
+    if(this.project){
+      this.project.setWordupPkg('wpInstall',wpInstall)
+    }else{
+      return wpInstall
+    }
   }
 
   async askWordupConnect(defaultUrl = undefined) {
@@ -95,19 +99,29 @@ class InstallationPrompt {
     const answers = await inquirer.prompt(questions)
 
     this.privateKey = answers.privateKey
+
     if(answers.url){
-      this.project.setWordupPkg('wpInstall','wordup-connect:'+answers.url)
+      const wpInstall = 'wordup-connect:'+answers.url
+      if(this.project){
+        this.project.setWordupPkg('wpInstall',wpInstall)
+      }else{
+        return wpInstall
+      }
     }
+
   }
 
-  async askNew() {
-    const wordupPackage = this.project.wPkg()
+  async askNew(projectName = '') {
+
+    if(this.project){
+      projectName = this.project.wPkg('projectName')
+    }
 
     const questions = [{
       type: 'input',
       name: 'title',
       message: 'Title of the WordPress installation',
-      default: wordupPackage.projectName,
+      default: projectName,
     },
     {
       type: 'input',
@@ -135,20 +149,30 @@ class InstallationPrompt {
 
     const answers = await inquirer.prompt(questions)
 
-    this.project.setWordupPkg('wpInstall', {
-      title: answers.title,
-      adminUser: answers.admin,
-      adminPassword: answers.password,
-      adminEmail: answers.email,
-    })
-
     const plugins = new WpApiPrompt('plugins')
     await plugins.ask()
-    this.project.setWordupPkg('wpInstall.plugins', plugins.getList())
 
     const themes = new WpApiPrompt('themes')
     await themes.ask()
-    this.project.setWordupPkg('wpInstall.themes', themes.getList())
+
+    const wpInstall = {
+      title: answers.title,
+      language:"en_US",
+      users:[{
+        name: answers.admin,
+        password: answers.password,
+        email: answers.email,
+        role:"administrator"
+      }],
+      plugins:plugins.getList(),
+      themes:themes.getList()
+    }
+
+    if(this.project){
+      this.project.setWordupPkg('wpInstall', wpInstall)
+    }else{
+      return wpInstall
+    }
   }
 }
 

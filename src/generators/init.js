@@ -2,6 +2,9 @@ const Generator = require('yeoman-generator')
 const path = require('path')
 const slugify = require('slugify')
 const fs = require('fs')
+const YAML = require('yaml')
+
+const InstallationPrompt =  require('../prompts/installation')
 
 
 class WordupInitGenerator extends Generator {
@@ -15,7 +18,7 @@ class WordupInitGenerator extends Generator {
       return 'Please start with a letter'
     }
   
-    const newPath = this.destinationPath(slugify(val, {lower: true}))
+    const newPath = this.destinationPath(slugify(val, {lower: true, remove: /[*+~%\<>/;.(){}?,'"!:@#^|]/g}))
     if(fs.existsSync(newPath)){
       return 'The folder in your current directory already exists, please choose a different name'
     }
@@ -24,8 +27,8 @@ class WordupInitGenerator extends Generator {
 
   async prompting() {
 
+    //Create directly a new project without prompting 
     if(process.env.WORDUP_INIT_PATH){
-      //Create directly a new project without prompting 
       const validPath = this.wordupProjectPathValid(this.options.projectName)
       if (validPath !== true) {
         console.log(validPath)
@@ -35,7 +38,8 @@ class WordupInitGenerator extends Generator {
       this.answers = {
         projectName: this.options.projectName,
         projectType: this.options.projectType,
-        scaffold: true
+        scaffold: true,
+        wpInstall:false
       }
     }else{
 
@@ -92,12 +96,38 @@ class WordupInitGenerator extends Generator {
       ])
     }
 
+    //Insert wpInstall parameters directly, without prompting 
+    if(process.env.WORDUP_INIT_WP_INSTALL){
+      const wpInstall = JSON.parse(Buffer.from(process.env.WORDUP_INIT_WP_INSTALL, 'base64').toString('utf8'))
+      if(wpInstall.values){
+
+        //Legacy rewrite. This should be done directly in vscode-ext
+        if(wpInstall.values.hasOwnProperty('adminUser')){
+          wpInstall.values.users = [{
+            name: wpInstall.values.adminUser,
+            password: wpInstall.values.adminPassword,
+            email: wpInstall.values.adminEmail,
+            role:"administrator"
+          }]
+
+          delete wpInstall.values.adminUser
+          delete wpInstall.values.adminPassword
+          delete wpInstall.values.adminEmail
+        }
+
+        this.answers.wpInstall = wpInstall.values
+      }
+    }else{
+      const installPrompts = new InstallationPrompt()
+      this.answers.wpInstall = await installPrompts.askNew(this.answers.projectName)
+    }
+
   }
 
   writing() {
     this.sourceRoot(path.join(__dirname, '../../templates'))
 
-    const projectNameSlug = slugify(this.answers.projectName, {lower: true})
+    const projectNameSlug = slugify(this.answers.projectName, {lower: true, remove: /[*+~%\<>/;.(){}?,'"!:@#^|]/g})
     const projectTypeSingular =  this.answers.projectType.slice(0, -1)
 
     const projectPath = this.destinationPath(projectNameSlug)
@@ -131,20 +161,16 @@ class WordupInitGenerator extends Generator {
       // Copy super basic skeleton
     }
 
-    // Setting wordup specific package.json settings
-    this.wordupPackage = {}
-    this.wordupPackage.type = this.answers.projectType
-    this.wordupPackage.projectName = this.answers.projectName
-    this.wordupPackage.slug = (this.answers.projectType === 'plugins') ? projectNameSlug + '/' + projectNameSlug + '.php' : projectNameSlug
-
-    //This a custom hook, to insert wpInstall parameters at the installation level
-    if(process.env.WORDUP_INIT_WP_INSTALL){
-      const wpInstall = JSON.parse(Buffer.from(process.env.WORDUP_INIT_WP_INSTALL, 'base64').toString('utf8'))
-      if(wpInstall.values){
-        this.wordupPackage.wpInstall = wpInstall.values
-      }
+    // Setting wordup config
+    let dotWordupConfig=  {
+      name: YAML.stringify({'projectName':this.answers.projectName}),
+      type: YAML.stringify({'type':this.answers.projectType}),
+      slug: YAML.stringify({'slug':(this.answers.projectType === 'plugins') ? projectNameSlug + '/' + projectNameSlug + '.php' : projectNameSlug}),
+      wpInstall: YAML.stringify({'wpInstall':this.answers.wpInstall})
     }
 
+    // Writing wordup config
+    this.fs.copyTpl(this.templatePath('config.yml.ejs'), this.destinationPath('.wordup/config.yml'), dotWordupConfig)
 
     //Writing package.json
     const {engines, name, version} = require('../../package.json')
@@ -158,8 +184,7 @@ class WordupInitGenerator extends Generator {
         start:'wordup start || true',
         build:'wordup export',
         postinstall:'wordup install || true'
-      },
-      wordup: {...this.wordupPackage}
+      }
     }
 
     //Add wordup-cli if init command was executed by npx itself or a different programm

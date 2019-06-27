@@ -14,11 +14,11 @@ const OAUTH_WORDUP_REVOKE_TOKEN_URL = 'http://localhost:8042/o/revoke_token/'
 
 class OAuth {
   constructor(configDir) {
-    this._wordupConfig = new Config(configDir)
+    this._wordupConfigstore = new Config(configDir)
   }
 
   authFlow() {
-    const config = this._wordupConfig
+    const config = this._wordupConfigstore
 
     const app = express()
 
@@ -67,7 +67,7 @@ class OAuth {
   }
 
   async getToken() {
-    const config = this._wordupConfig
+    const config = this._wordupConfigstore
 
     return new Promise(resolve => {
       if (!this.isAuthenticated()) {
@@ -105,7 +105,7 @@ class OAuth {
   }
 
   logout() {
-    const config = this._wordupConfig
+    const config = this._wordupConfigstore
     const tokenData = config.get('token')
 
     if (tokenData) {
@@ -126,7 +126,7 @@ class OAuth {
   }
 
   isAuthenticated() {
-    const tokenData = this._wordupConfig.get('token')
+    const tokenData = this._wordupConfigstore.get('token')
     if (tokenData) {
       return true
     }

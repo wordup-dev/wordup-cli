@@ -17,7 +17,7 @@ It is based on docker-compose and uses a docker containerized LAMP-stack with al
 * [Features](#features)
 * [Examples](#examples)
 * [Installation / Requirements](#installation--requirements)
-* [Folder structure](#folder-structure)
+* [Folder structure / Fixtures](#folder-structure--fixtures)
 * [Usage](#usage)
 * [Commands](#commands)
 * [Tutorial](#tutorial)
@@ -35,6 +35,7 @@ What you can do with wordup-cli:
 * ⏱**Speed up your development** - Install a new project with a blank WordPress installation in a matter of minutes
 * 🛠️**Boilerplate** - Scaffold your theme/plugin with the official source code from WordPress (e.g. [underscore](https://github.com/automattic/_s)). You can also add code snippets like *Gutenberg* blocks to your source code.
 * ⚙️**Automatic installation of dependencies** - Automatically download and activate public WordPress Plugins/Themes or even Github hosted projects (like e.g. [wp-graphql](https://github.com/wp-graphql/wp-graphql))
+* 📚**Fixtures** - Add posts, pages, media files and many more automatically to your WordPress installation and develop immediately with your own page structure
 * 🚀**Easy portability** - Export your theme/project or your whole WordPress installation. So that you can install it on a remote server.
 * 📦**Backup your installation** - And (re)install a project from an exported wordup project.
 * 🤩**Hassle-free remote WordPress connection** - Install your project, based on an existing WordPress hosted website (with the [wordup-connect](https://github.com/wordup-dev/wordup-connect) plugin). Use this feature for example to test major WordPress updates with ease locally.
@@ -69,7 +70,7 @@ $ npx wordup-cli init
 
 Note: If you use wordup-cli as a devDependency make sure to always use `npx` before every `wordup` command. 
 
-# Folder structure 
+# Folder structure / Fixtures
 
 ```
 A default wordup project structure looks like this
@@ -77,12 +78,40 @@ A default wordup project structure looks like this
 ├── .gitignore
 ├── README.md
 ├── package.json
+├── .wordup
+|    ├── config.yml 
+|    └── (Your fixture folders for posts, pages or media files)
 ├── dist
 |    └── (Your exported plugin/theme files)
 └── src
      ├── .distignore
      └── (Your plugin/theme src files)
 ```
+
+## Fixtures
+
+You can add fixtures to your WordPress installation. All fixtures are located in the .wordup folder:
+
+In the .wordup/media folder you can place your media files, which you need for developing.
+
+The .wordup/post and .wordup/page folder contain markdown files for each post/page. For example:
+
+```
+---
+title: My new WordPress project
+author: [Optional: name of the author]
+tags: [Optional: semicolon separated tags]
+category: [Optional: semicolon separated categories]
+menu: [Optional: semicolon separated menu names] 
+featured_image: [Optional: A file in your media folder]
+---
+
+#Headline
+
+A text
+```
+
+Furthermore you can automatically add users and custom roles in your config.yml.
 
 # Usage
 <!-- usage -->
@@ -191,7 +220,7 @@ OPTIONS
 
 DESCRIPTION
   ...
-  If there is no wordup installation config in your package.json, a setup for your installation will be shown.
+  If there is no wordup installation config in .wordup/config.yml, a setup for your installation will be shown.
   You can set a custom site url for WordPress, but please be aware that you have to proxy this url to your 
   localhost:port
 

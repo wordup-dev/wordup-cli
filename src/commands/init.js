@@ -12,7 +12,7 @@ class InitCommand extends Command {
       this.log('---')
       this.log('')
       this.log('Successfully init new wordup project ('+folder+')')
-      this.log('Just open your project folder and start developing ;)')
+      this.log('Just open your project folder and start developing :-)')
       if(flags.autoinstall){
         this.log('')
         this.log(chalk.bgBlue('wordup install')+' was executed automatically as a postinstall script in your package.json')

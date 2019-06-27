@@ -1,0 +1,18 @@
+# This is the wordup config:
+# - You can customize two things here: 
+# - Your wordup specific config and the config of your WordPress installation
+# Documentation https://github.com/wordup-dev/wordup-cli/
+
+# A wordup project is either of type 'plugins' or 'themes'
+<%- type %> 
+# The internal project name 
+<%- name %>
+# The slug of your plugin/theme. CAUTION: You have to reinstall your dev server, when you change the slug.
+<%- slug %>
+<% if(wpInstall) { %>
+# WordPress installation config 
+<%- wpInstall %>
+<% }else{ %>
+# WordPress installation config 
+wpInstall: {}
+<% } %>

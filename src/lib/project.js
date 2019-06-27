@@ -4,11 +4,12 @@ const shell = require('shelljs')
 const chalk = require('chalk')
 const crypto = require('crypto')
 const dotProp = require('dot-prop')
+const YAML = require('yaml')
 
 const Config  = require('./config')
 
 const wordupPackageRequiredItems = ['slug', 'projectName','type']
-const wordupInstallationConfigItems = ['title', 'adminUser','adminPassword', 'adminEmail']
+const wordupInstallationConfigItems = ['title', 'users']
 
 
 class Project {
@@ -20,11 +21,22 @@ class Project {
       this.projectPath = process.cwd()
     }
 
-    this._wordupConfig = new Config(oclifConfig.configDir)
-    this.oclifConfig = oclifConfig
-    this.projectId = crypto.createHash('sha1').update(this.projectPath).digest('hex')
+    //The configstore internal settings
+    this._wordupConfigstore = new Config(oclifConfig.configDir)
+
+    //The project specific configstore values
     this.config = {}
-    this.pjson = {}
+
+    //The oclif config
+    this.oclifConfig = oclifConfig
+
+    this.projectId = crypto.createHash('sha1').update(this.projectPath).digest('hex')
+
+    // The .wordup/config.yml representation as a yaml document and as an json object
+    // Internally this config is named wPkg
+    this.dotWordupYml = {}
+    this.dotWordupJson = {}
+
     this.log = log
     this.error = error
   }
@@ -32,25 +44,30 @@ class Project {
   setUp() {
     let composerFiles = path.join(this.wordupDockerPath(), '/docker-compose.yml')
 
-    if (fs.existsSync(this.getProjectPath('package.json'))) {
+    //Legacy support for projects which don't have .wordup/config.yml
+    this.updateWordupStructure()
+
+    if (fs.existsSync(this.getProjectPath('.wordup','config.yml'))) {
+
       try {
-        this.pjson = fs.readJsonSync(this.getProjectPath('package.json'))
+        this.dotWordupYml = YAML.parseDocument(fs.readFileSync(this.getProjectPath('.wordup','config.yml'), 'utf8'))
+        this.dotWordupJson = this.dotWordupYml.toJSON()
       } catch (err) {
-        this.error('Could not parse package.json', {exit:1})
+        this.error('Could not parse wordup config: '+err, {exit:1})
       }
 
       // Create the slug as a name. Because it could be also a path
       const slug = this.wPkg('slug')
       if(slug){
         if (slug.lastIndexOf('/') !== -1) {
-          dotProp.set(this.pjson, 'wordup.slugName', slug.substring(0, slug.lastIndexOf('/')))
+          dotProp.set(this.dotWordupJson, 'slugName', slug.substring(0, slug.lastIndexOf('/')))
         } else {
-          dotProp.set(this.pjson, 'wordup.slugName', slug)
+          dotProp.set(this.dotWordupJson, 'slugName', slug)
         }
       }
 
       // Get config based on the current path
-      this.config = this._wordupConfig.get('projects.' + this.projectId)
+      this.config = this._wordupConfigstore.get('projects.' + this.projectId)
 
       //Set docker-compose files
       if (fs.existsSync(this.getProjectPath('docker-compose.yml'))) {
@@ -75,22 +92,27 @@ class Project {
     
   }
 
-  //Get a custom wordup setting from package.json
+  //Get a custom wordup setting from config
   wPkg(key, defaultValue) {
     if (key) {
-      return dotProp.get( this.pjson, 'wordup.'+key, defaultValue)
+      return dotProp.get( this.dotWordupJson, key, defaultValue)
     }
-    return dotProp.get( this.pjson, 'wordup',{})
+    return this.dotWordupJson
   }
 
   setWordupPkg(key, value) {
-    dotProp.set(this.pjson, 'wordup.'+key, value)
+    dotProp.set(this.dotWordupJson, key, value)
 
-    let pjsonCopy = JSON.parse(JSON.stringify(this.pjson))
-    dotProp.delete(pjsonCopy, 'wordup.slugName')
+    const newValue = dotProp.get(this.dotWordupJson, key)
+    const ymlLevels = key.split('.')
+    if(ymlLevels.length > 1){
+      this.dotWordupYml.setIn(ymlLevels, YAML.createNode(newValue))
+    }else{
+      this.dotWordupYml.set(key, YAML.createNode(newValue))
+    }
 
     try {
-      fs.writeJsonSync(this.getProjectPath('package.json'), pjsonCopy, {spaces: 4})
+      fs.writeFileSync(this.getProjectPath('.wordup','config.yml'), this.dotWordupYml.toString())
     } catch (err) {
       this.error(err, {exit:1})
     }
@@ -106,17 +128,17 @@ class Project {
       throw new Error('Please provide a path')
     }
     const pathHash = crypto.createHash('sha1').update(data.path).digest('hex')
-    this._wordupConfig.set('projects.' + pathHash, data)
+    this._wordupConfigstore.set('projects.' + pathHash, data)
     return pathHash
   }
 
   setProjectConf(name, value) {
-    this._wordupConfig.set('projects.' + this.projectId + '.' + name, value)
+    this._wordupConfigstore.set('projects.' + this.projectId + '.' + name, value)
   }
 
   resetProjectConf(existingId) {
     if (existingId) {
-      this._wordupConfig.remove('projects.' + existingId)
+      this._wordupConfigstore.remove('projects.' + existingId)
     }
 
     const default_wordup_conf = {
@@ -125,16 +147,19 @@ class Project {
       path: this.getProjectPath(),
       installedOnPort: (this.config ? this.config.installedOnPort : false),
       listeningOnPort: (this.config ? this.config.listeningOnPort : false),
+      scaffoldOnInstall: (this.config ? this.config.scaffoldOnInstall : false),
       created: (this.config ? this.config.created : Math.floor(Date.now() / 1000))
     }
-    this._wordupConfig.set('projects.' + this.projectId, default_wordup_conf)
+    this._wordupConfigstore.set('projects.' + this.projectId, default_wordup_conf)
     this.config = default_wordup_conf
   }
 
   isExecWordupProject() {
-    // package.json is always required
-    if (!fs.existsSync(this.getProjectPath('package.json'))) {
-      this.log('No package.json. Create a new project or go to an existing wordup project folder.')
+
+    // wordup config is always required
+    if (!fs.existsSync(this.getProjectPath('.wordup','config.yml'))) {
+      //Legacy support
+      this.log('No wordup config found. Create a new project or go to an existing wordup project folder.')
       return false
     }
 
@@ -144,7 +169,7 @@ class Project {
     })
 
     if(notFound.length > 0){
-      this.error('Your wordup package.json is not correctly setup. Missing values: '+notFound.join(', '),{exit:5})
+      this.error('Your wordup config is not correctly setup. Missing values: '+notFound.join(', '),{exit:5})
       return false
     }
 
@@ -155,8 +180,8 @@ class Project {
 
     //Check changed slug
     if(this.wPkg('slugName') !== this.config.slugName){
-      this._wordupConfig.remove('projects.' + this.projectId)
-      this.error('You have changed the slug in package.json, please reinstall this project: '+chalk.bgBlue('wordup stop --project='+this.config.slugName+' --delete')+' and '+chalk.bgBlue('wordup install'),{exit:6})
+      this._wordupConfigstore.remove('projects.' + this.projectId)
+      this.error('You have changed the slug in your wordup config, please reinstall this project: '+chalk.bgBlue('wordup stop --project='+this.config.slugName+' --delete')+' and '+chalk.bgBlue('wordup install'),{exit:6})
       return false
     }    
 
@@ -209,7 +234,7 @@ class Project {
   }
 
   assignNewPort(defaultPort) {
-    const projects = this._wordupConfig.get('projects') || []
+    const projects = this._wordupConfigstore.get('projects') || []
 
     let ports = []
 
@@ -245,7 +270,7 @@ class Project {
   }
 
   getWordupPkgInstall(){
-    const installation = dotProp.get(this.pjson, 'wordup.wpInstall')
+    const installation = dotProp.get(this.dotWordupJson, 'wpInstall')
 
     if (typeof installation === 'string'){
       const regex = /^(archive|wordup-connect):(.*)/g
@@ -261,7 +286,14 @@ class Project {
     
     }else if(typeof installation === 'object'){
 
+      if(Object.keys(installation).length === 0){
+        return false
+      }
+
       const notFound = wordupInstallationConfigItems.filter(key => {
+        if(key === 'users'){
+          return !installation.hasOwnProperty(key) || installation[key].length === 0 
+        }
         return !installation.hasOwnProperty(key);
       })
 
@@ -293,11 +325,58 @@ class Project {
 
   }
 
-  getProjectPath(addPath){
+  getProjectPath(...addPath){
     if(addPath){
-      return path.join(this.projectPath,addPath)
+      return path.join(this.projectPath,...addPath)
     }
     return this.projectPath
+  }
+
+  updateWordupStructure(){
+    const wordupFolder = this.getProjectPath('.wordup')
+
+    if (fs.existsSync(this.getProjectPath('package.json')) && !fs.existsSync(wordupFolder)) {
+
+      const pjson = fs.readJsonSync(this.getProjectPath('package.json'))
+      if(pjson.hasOwnProperty('wordup')){
+
+          fs.mkdirSync(wordupFolder)
+          
+          const newConfig = Object.assign({},pjson.wordup)
+          if(newConfig.hasOwnProperty('wpInstall')){
+            newConfig.wpInstall.language = 'en_US'
+
+            if(newConfig.wpInstall.hasOwnProperty('adminUser')){
+              newConfig.wpInstall.users = [{
+                'name': newConfig.wpInstall.adminUser,
+                'email': newConfig.wpInstall.adminEmail,
+                'password': newConfig.wpInstall.adminPassword,
+                'role':'administrator'
+              }]
+
+              delete newConfig.wpInstall.adminUser
+              delete newConfig.wpInstall.adminEmail
+              delete newConfig.wpInstall.adminPassword
+            }
+          }
+
+          try {
+
+            const doc = new YAML.Document()
+            doc.commentBefore = ' This is the new wordup config. All wordup specific config from package.json moved here.'
+            doc.contents = newConfig
+
+            fs.writeFileSync(this.getProjectPath('.wordup','config.yml'), doc.toString())
+
+          } catch (err) {
+            this.error(err, {exit:1})
+          }
+
+          this.log('INFO: The wordup config has been moved to .wordup/config.yml in your project folder.')
+          this.log('')
+      }
+    }
+
   }
 
 }
