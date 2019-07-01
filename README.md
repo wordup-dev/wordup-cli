@@ -1,11 +1,11 @@
-Wordup CLI 
+Wordup CLI
 ==========
 
 ![Wordup](https://wordup.dev/assets/img/logo_social.png)
 
-[![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
 [![Version](https://img.shields.io/npm/v/wordup-cli.svg)](https://npmjs.org/package/wordup-cli)
 [![Downloads/week](https://img.shields.io/npm/dw/wordup-cli.svg)](https://npmjs.org/package/wordup-cli)
+[![Wordup docs](https://img.shields.io/badge/wordup-docs-brightgreen.svg)](https://docs.wordup.dev)
 [![Twitter Follow](https://img.shields.io/twitter/follow/wordup_dev.svg?label=%40wordup_dev&style=social)](https://twitter.com/wordup_dev)
 
 
@@ -17,7 +17,7 @@ It is based on docker-compose and uses a docker containerized LAMP-stack with al
 * [Features](#features)
 * [Examples](#examples)
 * [Installation / Requirements](#installation--requirements)
-* [Folder structure / Fixtures](#folder-structure--fixtures)
+* [Documentation](#documentation)
 * [Usage](#usage)
 * [Commands](#commands)
 * [Tutorial](#tutorial)
@@ -25,7 +25,6 @@ It is based on docker-compose and uses a docker containerized LAMP-stack with al
 * [Learn more](#learn-more)
 * [License / Contributing](#license--contributing)
 <!-- tocstop -->
-
 
 # Features
 
@@ -70,48 +69,9 @@ $ npx wordup-cli init
 
 Note: If you use wordup-cli as a devDependency make sure to always use `npx` before every `wordup` command. 
 
-# Folder structure / Fixtures
+# Documentation
 
-```
-A default wordup project structure looks like this
-
-├── .gitignore
-├── README.md
-├── package.json
-├── .wordup
-|    ├── config.yml 
-|    └── (Your fixture folders for posts, pages or media files)
-├── dist
-|    └── (Your exported plugin/theme files)
-└── src
-     ├── .distignore
-     └── (Your plugin/theme src files)
-```
-
-## Fixtures
-
-You can add fixtures to your WordPress installation. All fixtures are located in the .wordup folder:
-
-In the .wordup/media folder you can place your media files, which you need for developing.
-
-The .wordup/post and .wordup/page folder contain markdown files for each post/page. For example:
-
-```
----
-title: My new WordPress project
-author: [Optional: name of the author]
-tags: [Optional: semicolon separated tags]
-category: [Optional: semicolon separated categories]
-menu: [Optional: semicolon separated menu names] 
-featured_image: [Optional: A file in your media folder]
----
-
-#Headline
-
-A text
-```
-
-Furthermore you can automatically add users and custom roles in your config.yml.
+For detailed information visit [docs.wordup.dev](https://docs.wordup.dev)
 
 # Usage
 <!-- usage -->
@@ -195,7 +155,7 @@ OPTIONS
 DESCRIPTION
   ...
   After you have initialized a new project, 'wordup install' will be called automatically, as a postinstall script in 
-  your package.json
+  your package.json. 
   You can stop this behavior with --no-autoinstall
 ```
 

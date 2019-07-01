@@ -54,7 +54,7 @@ class InitCommand extends Command {
 
 InitCommand.description = `Create a new wordup project in the current directoy
 ...
-After you have initialized a new project, 'wordup install' will be called automatically, as a postinstall script in your package.json
+After you have initialized a new project, 'wordup install' will be called automatically, as a postinstall script in your package.json. 
 You can stop this behavior with --no-autoinstall
 `
 InitCommand.flags = {
