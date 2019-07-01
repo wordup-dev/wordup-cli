@@ -23,7 +23,7 @@ In your project you will find a folder called .wordup for the project specific c
 
 ## Documentation
 
-For more information visit [docs.wordup.dev](https://docs.wordup.dev)
+For detailed information and advanced topics visit [docs.wordup.dev](https://docs.wordup.dev)
 
 ## Caution ⚠️
 
@@ -79,28 +79,6 @@ Text Domain: <%= slug %>
 
 `index.php` file with the basic template for your theme.
 <% } %>
-
-## Add your own containers
-
-Because wordup is based on docker-compose, it's possible to extend a project with containers of your choice. 
-If you want to integrate for example phpMyAdmin, you just have to create a file called `docker-compose.yml` in the root folder of your project, with this content:
-
-```yaml
-version: '3'
-
-services:
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    restart: always
-    environment:
-      - PMA_HOST=db
-      - PMA_USER=wordpress
-      - PMA_PASSWORD=wordpress
-    ports:
-      - 8080:80
-```
-
-That's it, all your wordup commands will stay the same. But now also phpMyAdmin is running on port 8080, when you start your project servers.
 
 ## Contributing
 
