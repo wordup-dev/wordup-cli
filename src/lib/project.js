@@ -317,9 +317,12 @@ class Project {
     shell.env.WORDUP_PORT = port
     shell.env.WORDUP_MAIL_PORT = parseInt(port,10) + 1
 
+    shell.env.WORDUP_SRC_FOLDER = this.wPkg('srcFolder', 'src')
+    shell.env.WORDUP_DIST_FOLDER = this.wPkg('distFolder','dist')
+
     //This is a hack to prevent file permission issues in bind mount volumes in docker-compose 
-    const srcFolder = this.getProjectPath('src')
-    const distFolder = this.getProjectPath('dist')
+    const srcFolder = this.getProjectPath(shell.env.WORDUP_SRC_FOLDER)
+    const distFolder = this.getProjectPath(shell.env.WORDUP_DIST_FOLDER)
     if (!fs.existsSync(srcFolder)) fs.mkdirSync(srcFolder)
     if (!fs.existsSync(distFolder)) fs.mkdirSync(distFolder)
 

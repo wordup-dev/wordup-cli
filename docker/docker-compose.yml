@@ -43,7 +43,7 @@ services:
       WORDUP_PORT: ${WORDUP_PORT:-8000}
     volumes:
       - wp_data:/var/www/html
-      - ./src:/src
+      - ./${WORDUP_SRC_FOLDER:-src}:/src
 
 
   wordpress-cli:
@@ -67,8 +67,8 @@ services:
     volumes:
       - wp_data:/var/www/html
       #- ./config/php.conf.ini:/usr/local/etc/php/conf.d/conf.ini
-      - ./src:/src
-      - ./dist:/dist
+      - ./${WORDUP_SRC_FOLDER:-src}:/src
+      - ./${WORDUP_DIST_FOLDER:-dist}:/dist
       - ./.wordup:/wordup
 
   mail:

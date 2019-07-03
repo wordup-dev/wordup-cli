@@ -34,8 +34,10 @@ class ExportCommand extends Command {
 
       if (exportType === 'installation') {
         const crypto = require('crypto')
+
+        const distPath = shell.env.WORDUP_DIST_FOLDER
         
-        fs.createReadStream( project.getProjectPath('dist/'+filename+'.tar.gz'))
+        fs.createReadStream( project.getProjectPath(distPath, filename+'.tar.gz'))
         .pipe(crypto.createHash('sha1').setEncoding('hex'))
         .on('finish', function () {
           console.log('Checksum sha1', this.read()) // the hash
