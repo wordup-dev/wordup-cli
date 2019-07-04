@@ -33,6 +33,7 @@ class Base extends Command {
 
     const showLogs = this.debug
     const log = this.log
+    const error = this.error
 
     if (!showLogs) {
       cli.action.start(text)
@@ -49,6 +50,9 @@ class Base extends Command {
         log('---')
       }
       return result.code
+    }, function(result) {
+      cli.action.stop('-')
+      error(result.done,{exit:result.code})
     })
   }
 }

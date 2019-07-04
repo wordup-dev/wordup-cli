@@ -28,29 +28,26 @@ class StartCommand extends Command {
     const port = flags.port ? flags.port : project.assignNewPort(project.config.installedOnPort)
     project.prepareDockerComposeUp(port)
 
-    const startCode = await this.customLogs('Start wordup', (resolve, reject, showLogs) => {
+    await this.customLogs('Start wordup', (resolve, reject, showLogs) => {
       shell.exec('docker-compose --project-directory ' + project.getProjectPath() + ' up -d', {silent: !showLogs}, function (code, _stdout, _stderr) {
         if (code === 0) {
           resolve({done: '✔', code: code})
         } else {
-          resolve({done: 'Error', code: code})
+          reject({done: 'There was an error while starting the docker containers.', code: code})
         }
       })
     })
 
-    if(startCode === 0){
-      this.log('')
-      this.log('"'+project.wPkg('projectName') + '" successfully started.')
+    this.log('')
+    this.log('"'+project.wPkg('projectName') + '" successfully started.')
 
-      //Print the urls and credentials
-      utils.printDevServerInfos(this.log, port, shell.env.WORDUP_MAIL_PORT, project)
+    //Print the urls and credentials
+    utils.printDevServerInfos(this.log, port, shell.env.WORDUP_MAIL_PORT, project)
 
-      const siteUrl = (project.config.customSiteUrl ? project.config.customSiteUrl : 'http://localhost:' + port)
-      await open(siteUrl, {wait: false})
-      project.setProjectConf('listeningOnPort', port)
-    }else{
-      this.error('There was an error while starting the docker containers.', {exit: 1})
-    }
+    const siteUrl = (project.config.customSiteUrl ? project.config.customSiteUrl : 'http://localhost:' + port)
+    await open(siteUrl, {wait: false})
+    project.setProjectConf('listeningOnPort', port)
+
 
   }
 }
