@@ -56,14 +56,21 @@ class WordupInitGenerator extends Generator {
       {
         type: 'list',
         name: 'projectType',
-        message: 'What do you want do develop',
+        message: 'What kind of project do you want to develop',
         default: this.options.projectType || '',
-        choices: [{name:'A WordPress plugin', value: 'plugins'},{name:'A WordPress theme', value: 'themes'}],
+        choices: [
+          {name:'A WordPress plugin', value: 'plugins'},
+          {name:'A WordPress theme', value: 'themes'},
+          {name:'I just need a WordPress installation', value: 'installation'}
+        ],
       },
       {
         type: 'confirm',
         name: 'scaffold',
         message: 'Scaffold project with boilerplate code',
+        when: function (answers) {
+          return answers.projectType !== 'installation'
+        }
       },
       {
         type: 'list',
@@ -128,7 +135,8 @@ class WordupInitGenerator extends Generator {
     this.sourceRoot(path.join(__dirname, '../../templates'))
 
     const projectNameSlug = slugify(this.answers.projectName, {lower: true, remove: /[*+~%\<>/;.(){}?,'"!:@#^|]/g})
-    const projectTypeSingular =  this.answers.projectType.slice(0, -1)
+    const projectTypeSingular = (this.answers.projectType === 'installation') ? 'installation' : this.answers.projectType.slice(0, -1)
+
 
     const projectPath = this.destinationPath(projectNameSlug)
     this.destinationRoot(projectPath)
@@ -155,7 +163,7 @@ class WordupInitGenerator extends Generator {
     this.fs.copyTpl(this.templatePath('gitignore.ejs'), this.destinationPath('.gitignore'))
 
     // Scaffold
-    if (this.answers.scaffold) {
+    if (this.answers.scaffold && this.answers.projectType !== 'installation') {
       this.fs.copyTpl(this.templatePath('scaffold.ejs'), this.destinationPath('src/.scaffold'))
     } else {
       // Copy super basic skeleton

@@ -9,13 +9,13 @@ Happy Coding 🚀
 
 To setup your development server, run the following command in your project folder:
 
-```
+```sh
 $ wordup install
 ```
 
 or if it's already installed:
 
-```
+```sh
 $ wordup start
 ```
 
@@ -25,11 +25,21 @@ In your project you will find a folder called .wordup for the project specific c
 
 For detailed information and advanced topics visit [docs.wordup.dev](https://docs.wordup.dev)
 
+<% if (type == 'installation') { %>
+## *Installation* project
+
+You have selected a wordup project of type *installation*. 
+
+This means that your **src** folder represents the wp-content folder of the WordPress installation.
+
+Wordup doesn't show the rest of the WordPress source-code because you should never change files outside of the wp-content folder.
+<% }else{ %>
 ## Caution ⚠️
 
 DON'T delete this <%= type %> in the WP-Admin, you will lose your src files.
 
 That's why we also recommend to use a VCS like Git.
+<% } %>
 
 <% if (type == 'plugin') { %>
 ## Setup a WordPress plugin
@@ -38,7 +48,7 @@ Essential files for your WordPress plugin:
 
 Create a file called `<%= slug %>.php` in /src folder with a doctype like this:
 
-```
+```php
 /**
  * Plugin Name:     <%= name %>
  * Plugin URI:      PLUGIN SITE HERE
@@ -62,7 +72,7 @@ There are two essential files for a WordPress theme:
 
 `style.css` file with a doctype like this:
 
-```
+```php
 /*
 Theme Name: <%= name %>
 Theme URI: THEME SITE HERE

@@ -60,7 +60,7 @@ You can stop this behavior with --no-autoinstall
 InitCommand.flags = {
   autoinstall: flags.boolean({description: 'Automatically install wordup project after init', default: true, allowNo: true}),
   name: flags.string({description: 'A name for the new project', env: 'WORDUP_INIT_NAME',}),
-  type: flags.string({description: 'What type of WordPress project',options: ['plugins', 'themes'], env: 'WORDUP_INIT_TYPE'})
+  type: flags.string({description: 'What type of WordPress project',options: ['plugins', 'themes', 'installation'], env: 'WORDUP_INIT_TYPE'})
 }
 
 module.exports = InitCommand

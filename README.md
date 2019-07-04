@@ -51,7 +51,7 @@ Make sure you have node >= 8.3 (npm >= 5.2) and [docker-compose](https://www.doc
 
 We recommend to install wordup-cli **globally**: 
 
-```sh-session
+```sh
 $ npm install -g wordup-cli
 ```
 
@@ -61,7 +61,7 @@ After installing wordup-cli, you can create your first project with `wordup init
 
 If you **don't want** to install wordup-cli globally, you can also use wordup-cli as a devDependency via `npx`. Start directly with a new wordup project: 
 
-```sh-session
+```sh
 $ npx wordup-cli init
 ```
 

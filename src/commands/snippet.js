@@ -7,7 +7,7 @@ class SnippetCommand extends Command {
   async run() {
     const {args} = this.parse(SnippetCommand)
 
-    if (!this.wordupProject.isExecWordupProject()) {
+    if (!this.wordupProject.isExecWordupProject('snippet')) {
       this.exit(5)
     }
 

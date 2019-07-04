@@ -66,10 +66,11 @@ services:
 
     volumes:
       - wp_data:/var/www/html
-      #- ./config/php.conf.ini:/usr/local/etc/php/conf.d/conf.ini
       - ./${WORDUP_SRC_FOLDER:-src}:/src
       - ./${WORDUP_DIST_FOLDER:-dist}:/dist
       - ./.wordup:/wordup
+      #- ./config/php.conf.ini:/usr/local/etc/php/conf.d/conf.ini
+
 
   mail:
     image: mailhog/mailhog

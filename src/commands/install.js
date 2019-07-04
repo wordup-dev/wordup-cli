@@ -34,7 +34,7 @@ class InstallCommand extends Command {
       flags.port = project.assignNewPort(flags.port)
     }
 
-    // Get the installation config from package.json
+    // Get the installation config from config.yml
     let wpInstall  = project.getWordupPkgInstall()
 
     let wordupArchive = flags.archive ||  undefined
@@ -173,7 +173,7 @@ The web frontend for the catched emails (MailHog) is available on localhost:[WOR
 
 Wordup will assign automatically a different default port, if the default port of 8000 is taken by another wordup project.
 
-Note: Flags in this command overrule the config of your package.json.
+Note: Flags in this command overrule the wordup config.yml.
 `
 
 InstallCommand.flags = {

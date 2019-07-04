@@ -154,7 +154,7 @@ class Project {
     this.config = default_wordup_conf
   }
 
-  isExecWordupProject() {
+  isExecWordupProject(blockFunction) {
 
     // wordup config is always required
     if (!fs.existsSync(this.getProjectPath('.wordup','config.yml'))) {
@@ -170,6 +170,13 @@ class Project {
 
     if(notFound.length > 0){
       this.error('Your wordup config is not correctly setup. Missing values: '+notFound.join(', '),{exit:5})
+      return false
+    }
+
+    //Some functions cannot execute if the project is of type installation
+    const blockedInstallationFunctions = ['snippet'];
+    if(blockFunction && blockedInstallationFunctions.indexOf(blockFunction) >= 0){
+      this.error('This function is not available in a project of type: installation',{exit:5})
       return false
     }
 
