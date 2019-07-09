@@ -17,5 +17,5 @@ RUN userdel -f www-data &&\
 
 USER www-data
 
-RUN wp package install https://github.com/wordup-dev/wordup-wp-cli/archive/v0.5.0.zip
+RUN wp package install https://github.com/wordup-dev/wordup-wp-cli/archive/v0.5.1.zip
 RUN wp package install wp-cli/dist-archive-command  
