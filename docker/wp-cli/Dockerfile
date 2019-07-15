@@ -1,7 +1,7 @@
 FROM wordpress:cli
 
-ARG USER_ID
-ARG GROUP_ID
+ARG USER_ID=1000
+ARG GROUP_ID=1000
 
 ENV WP_CLI_CACHE_DIR=/tmp/.wp-cli/cache/
 ENV WP_CLI_PACKAGES_DIR=/tmp/.wp-cli/packages/

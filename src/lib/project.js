@@ -42,7 +42,23 @@ class Project {
   }
 
   setUp() {
-    let composerFiles = path.join(this.wordupDockerPath(), '/docker-compose.yml')
+    let composerFiles = this.wordupDockerPath('docker-compose.yml')
+
+    const seperator = (this.oclifConfig.platform === 'win32') ? ';' : ':'
+
+    // This is necessary to prevent file permission issues on LINUX with docker
+    // Not working if uid exists in container. This is stil an issue
+    // Kudos: https://jtreminio.com/blog/running-docker-containers-as-current-host-user/
+    if(this.oclifConfig.platform === 'linux' || process.env.WORDUP_BUILD_CONTAINER === 'true'){
+      if (process.getuid) shell.env.WORDUP_UID = process.getuid()
+      //GroupId is currently not used in dockerfiles
+      if (process.getgid) shell.env.WORDUP_GID = process.getgid()
+
+      shell.env.WORDUP_DOCKERFILE_WP_PATH = this.wordupDockerPath('wp') 
+      shell.env.WORDUP_DOCKERFILE_WPCLI_PATH = this.wordupDockerPath('wp-cli') 
+
+      composerFiles += seperator + this.wordupDockerPath('docker-compose.build.yml') 
+    }
 
     //Legacy support for projects which don't have .wordup/config.yml
     this.updateWordupStructure()
@@ -72,7 +88,6 @@ class Project {
       //Set docker-compose files
       if (fs.existsSync(this.getProjectPath('docker-compose.yml'))) {
         // If there is a local docker-compose.yml file, extend it
-        const seperator = (this.oclifConfig.platform === 'win32') ? ';' : ':'
         composerFiles += seperator + this.getProjectPath('docker-compose.yml') 
       }
     }
@@ -80,15 +95,6 @@ class Project {
     //Set env which are the same for each project
     shell.env.COMPOSE_FILE = composerFiles
     shell.env.WORDUP_DOCKERFILE_PATH = this.wordupDockerPath()
-
-    // This is necessary to prevent file permission issues on LINUX with docker
-    // Not working if uid exists in container. This is stil an issue
-    // Kudos: https://jtreminio.com/blog/running-docker-containers-as-current-host-user/
-    if(this.oclifConfig.platform === 'linux'){
-      if (process.getuid) shell.env.WORDUP_UID = process.getuid()
-      //GroupId is currently not used in dockerfiles
-      if (process.getgid) shell.env.WORDUP_GID = process.getgid()
-    }
     
   }
 
@@ -119,7 +125,10 @@ class Project {
 
   }
 
-  wordupDockerPath() {
+  wordupDockerPath(...addPath) {
+    if(addPath){
+      return path.join(__dirname, '../../docker', ...addPath);
+    }
     return path.join(__dirname, '../../docker')
   }
 

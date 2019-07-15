@@ -1,7 +1,7 @@
 FROM wordpress:latest
 
-ARG USER_ID
-ARG GROUP_ID
+ARG USER_ID=1000
+ARG GROUP_ID=1000
 
 COPY php.conf.ini /usr/local/etc/php/conf.d/conf.ini
 

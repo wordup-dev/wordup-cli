@@ -1,5 +1,5 @@
 # CAUTION: Only change this file if you know what you are doing
-version: '3'
+version: "3.7"
 
 services:
   db:
@@ -19,13 +19,7 @@ services:
     depends_on:
       - db
       - mail
-    image: wordup-wp:1.0
-    build: 
-      context: ${WORDUP_DOCKERFILE_PATH:?err}
-      dockerfile: Dockerfile-wp
-      args:
-        USER_ID: ${WORDUP_UID:-1000}
-        GROUP_ID: ${WORDUP_GID:-1000}
+    image: wordupdev/wordup-wp:1.0
 
     labels:
       - "wordup.dev"
@@ -50,13 +44,7 @@ services:
     depends_on:
       - db
       - wordpress
-    image: wordup-wp-cli:1.0
-    build: 
-      context: ${WORDUP_DOCKERFILE_PATH:?err}
-      dockerfile: Dockerfile-wpcli
-      args:
-        USER_ID: ${WORDUP_UID:-1000}
-        GROUP_ID: ${WORDUP_GID:-1000}
+    image: wordupdev/wordup-wp-cli:1.0
 
     labels:
       - "wordup.dev"
