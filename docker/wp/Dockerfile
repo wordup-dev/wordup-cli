@@ -1,16 +1,12 @@
-FROM wordpress:latest
+FROM wordpress:5.2.2-php7.2-apache
 
 ARG USER_ID=1000
 ARG GROUP_ID=1000
 
 COPY php.conf.ini /usr/local/etc/php/conf.d/conf.ini
 
-RUN apt-get update && \
-	apt-get install -y ssmtp
-
-COPY ssmtp.conf /etc/ssmtp/ssmtp.conf
-
-RUN echo "www-data:no-reply@wordup.local" >> /etc/ssmtp/revaliases
+RUN apt-get update; \
+	apt-get install -y msmtp
 
 RUN yes | pecl install xdebug \
 	&& echo "zend_extension=$(find /usr/local/lib/php/extensions/ -name xdebug.so)" > /usr/local/etc/php/conf.d/xdebug.ini \

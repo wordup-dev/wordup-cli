@@ -19,7 +19,7 @@ services:
     depends_on:
       - db
       - mail
-    image: wordupdev/wordup-wp:1.0
+    image: wordupdev/wordup-wp:1.0-php7.2
 
     labels:
       - "wordup.dev"
