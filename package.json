@@ -6,7 +6,7 @@
     "wordup": "./bin/run"
   },
   "dependencies": {
-    "@oclif/command": "^1.5.16",
+    "@oclif/command": "^1.5.17",
     "@oclif/config": "^1.13.2",
     "@oclif/plugin-help": "^2.2.0",
     "axios": "^0.19.0",
