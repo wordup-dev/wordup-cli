@@ -183,7 +183,7 @@ class Project {
 
     //Some functions cannot execute if the project is of type installation
     const blockedInstallationFunctions = ['snippet'];
-    if(blockFunction && blockedInstallationFunctions.indexOf(blockFunction) >= 0){
+    if(blockFunction && this.wPkg('type') === 'installation' && blockedInstallationFunctions.indexOf(blockFunction) >= 0){
       this.error('This function is not available in a project of type: installation',{exit:5})
       return false
     }
