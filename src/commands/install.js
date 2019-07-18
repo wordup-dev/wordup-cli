@@ -131,7 +131,7 @@ class InstallCommand extends Command {
       const checkDBConnection = function() {
         setTimeout(function() {
           tries++;
-          shell.exec('docker-compose --project-directory ' + project.getProjectPath() + ' run --rm --no-deps  wordpress-cli db check', {silent: true}, function (code, _stdout, _stderr){
+          shell.exec('docker-compose --project-directory ' + project.getProjectPath() + ' run --rm --no-deps wordpress-cli db check', {silent: true}, function (code, _stdout, _stderr){
             if(code === 0){
               resolve({done: '✔', code:0})
             }else if (tries < 150) {
