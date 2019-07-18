@@ -25,7 +25,7 @@ class SnippetCommand extends Command {
         addArgs += '--plugin='+this.wordupProject.wPkg('slugName')
     }
 
-    shell.exec('docker-compose --project-directory ' + this.wordupProject.getProjectPath() + ' run --rm --service-ports --use-aliases wordpress-cli scaffold '+args.type+' '+slugify(args.name)+' '+addArgs)
+    shell.exec('docker-compose --project-directory ' + this.wordupProject.getProjectPath() + ' run --rm --no-deps wordpress-cli scaffold '+args.type+' '+slugify(args.name)+' '+addArgs)
 
   }
 }
