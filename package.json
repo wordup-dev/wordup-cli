@@ -1,7 +1,7 @@
 {
   "name": "wordup-cli",
   "description": "Development toolkit for setting up and managing your local WordPress Theme/Plugin",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "bin": {
     "wordup": "./bin/run"
   },
