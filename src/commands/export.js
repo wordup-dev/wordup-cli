@@ -27,7 +27,7 @@ class ExportCommand extends Command {
       exportParams = ' --filename='+filename
     }
 
-    shell.exec('docker-compose --project-directory ' + project.getProjectPath() + ' run --rm wordpress-cli wordup export ' + project.getWordupPkgB64() + ' --type=' + exportType+exportParams, function (code, stdout, stderr) {
+    shell.exec('docker-compose --project-directory ' + project.getProjectPath() + ' run --rm --service-ports --use-aliases wordpress-cli wordup export ' + project.getWordupPkgB64() + ' --type=' + exportType+exportParams, function (code, stdout, stderr) {
       if(code !== 0){
         return;
       }

@@ -131,7 +131,7 @@ class InstallCommand extends Command {
       const checkDBConnection = function() {
         setTimeout(function() {
           tries++;
-          shell.exec('docker-compose --project-directory ' + project.getProjectPath() + ' run --rm wordpress-cli db check', {silent: true}, function (code, _stdout, _stderr){
+          shell.exec('docker-compose --project-directory ' + project.getProjectPath() + ' run --rm --service-ports --use-aliases  wordpress-cli db check', {silent: true}, function (code, _stdout, _stderr){
             if(code === 0){
               resolve({done: '✔', code:0})
             }else if (tries < 20) {
@@ -147,7 +147,7 @@ class InstallCommand extends Command {
     })
 
     const installCode = await this.customLogs('Setting-up WordPress based on your .wordup/config.yml', (resolve, reject, showLogs) => {
-      shell.exec('docker-compose --project-directory ' + project.getProjectPath() + ' run --rm ' + addVolumes + ' wordpress-cli wordup install ' + project.getWordupPkgB64() + installParams, {silent: !showLogs}, function (code, _stdout, _stderr) {
+      shell.exec('docker-compose --project-directory ' + project.getProjectPath() + ' run --rm --service-ports --use-aliases ' + addVolumes + ' wordpress-cli wordup install ' + project.getWordupPkgB64() + installParams, {silent: !showLogs}, function (code, _stdout, _stderr) {
         if(code === 0){
           resolve({done: '✔', code:code})
         }else{

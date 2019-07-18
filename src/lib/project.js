@@ -94,7 +94,6 @@ class Project {
 
     //Set env which are the same for each project
     shell.env.COMPOSE_FILE = composerFiles
-    shell.env.WORDUP_DOCKERFILE_PATH = this.wordupDockerPath()
     
   }
 
