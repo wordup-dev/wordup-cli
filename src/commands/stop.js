@@ -33,7 +33,7 @@ class StopCommand extends Command {
 
     await this.customLogs('Stop '+(deleteAll ? '& delete ' : '')+'local servers', (resolve, reject, showLogs) => {
       shell.exec('docker-compose down' + (deleteAll ? ' -v' : ''), {silent: !showLogs}, function (code, _stdout, _stderr) {
-        if (code === 0 && projectId) {
+        if (code === 0 && config.get('projects.' + projectId)) {
           config.set('projects.' + projectId + '.listeningOnPort', false)
           if (deleteAll) {
             config.set('projects.' + projectId + '.installedOnPort', false)

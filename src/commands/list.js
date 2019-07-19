@@ -15,13 +15,17 @@ class ListCommand extends Command {
     // Clear list from non existing projects
     if (flags.clear) {
       Object.keys(projects).forEach(key => {
-        const configPath = path.join(projects[key].path, '.wordup','config.yml')
+        if(!projects[key].path){
+            delete projects[key]
+        }else{
+            const configPath = path.join(projects[key].path, '.wordup','config.yml')
 
-        //Legacy support 
-        const oldPackagePath = path.join(projects[key].path, 'package.json')
+            //Legacy support 
+            const oldPackagePath = path.join(projects[key].path, 'package.json')
 
-        if (!fs.existsSync(configPath) || !fs.existsSync(oldPackagePath)) {
-          delete projects[key]
+            if (!fs.existsSync(configPath) || !fs.existsSync(oldPackagePath)) {
+              delete projects[key]
+            }
         }
       })
       this.wordupConfig.set('projects', projects)
