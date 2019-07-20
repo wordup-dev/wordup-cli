@@ -1,9 +1,19 @@
 
+const path = require('path')
+
 module.exports = {
 
   isValidUrl: function (value) {
     var regex = /(http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/
     return regex.test(value)
+  },
+
+  wordupConformPath(aPath) {
+    if(process.platform === "win32"){
+      const root = path.parse(aPath).root
+      return path.resolve("/", aPath.replace(root, ""))
+    }
+    return aPath;
   },
 
   printDevServerInfos(log, wpPort, mailhogPort, project){

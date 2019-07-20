@@ -134,7 +134,7 @@ class InstallCommand extends Command {
           shell.exec('docker-compose --project-directory ' + project.getProjectPath() + ' run --rm --no-deps wordpress-cli db check', {silent: true}, function (code, _stdout, _stderr){
             if(code === 0){
               resolve({done: '✔', code:0})
-            }else if (tries < 150) {
+            }else if (tries < 100) {
               checkDBConnection()
             }else{
               reject({done: 'Could not establish a WordPress DB connection', code:1})

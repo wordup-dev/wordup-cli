@@ -7,6 +7,7 @@ const dotProp = require('dot-prop')
 const YAML = require('yaml')
 
 const Config  = require('./config')
+const {wordupConformPath} =  require('./utils')
 
 const wordupPackageRequiredItems = ['slug', 'projectName','type']
 const wordupInstallationConfigItems = ['title', 'users']
@@ -16,7 +17,7 @@ class Project {
   constructor(oclifConfig, log, error) {
     //Set projectpath
     if(process.env.WORDUP_PROJECT_PATH){
-      this.projectPath = process.env.WORDUP_PROJECT_PATH
+      this.projectPath = wordupConformPath(process.env.WORDUP_PROJECT_PATH)
     }else{
       this.projectPath = process.cwd()
     }

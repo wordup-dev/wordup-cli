@@ -6,6 +6,7 @@ const YAML = require('yaml')
 
 const InstallationPrompt =  require('../prompts/installation')
 
+const {wordupConformPath} =  require('../lib/utils')
 
 class WordupInitGenerator extends Generator {
 
@@ -145,7 +146,7 @@ class WordupInitGenerator extends Generator {
     const projectId = this.options.project.createProjectConf({
       name: this.answers.projectName,
       slugName: projectNameSlug,
-      path: projectPath,
+      path: wordupConformPath(projectPath),
       installedOnPort: false,
       listeningOnPort: false,
       scaffoldOnInstall:  this.answers.scaffoldType ? this.answers.scaffoldType : this.answers.scaffold,
