@@ -51,7 +51,7 @@ class Project {
     // Not working if uid exists in container. This is stil an issue
     // Kudos: https://jtreminio.com/blog/running-docker-containers-as-current-host-user/
     if(this.oclifConfig.platform === 'linux' || process.env.WORDUP_BUILD_CONTAINER === 'true'){
-      if (process.getuid) shell.env.WORDUP_UID = process.getuid()
+      if (process.getuid && process.getuid() > 0) shell.env.WORDUP_UID = process.getuid()
       //GroupId is currently not used in dockerfiles
       if (process.getgid) shell.env.WORDUP_GID = process.getgid()
 
