@@ -50,10 +50,19 @@ class Project {
     // This is necessary to prevent file permission issues on LINUX with docker
     // Not working if uid exists in container. This is stil an issue
     // Kudos: https://jtreminio.com/blog/running-docker-containers-as-current-host-user/
-    if(this.oclifConfig.platform === 'linux' || process.env.WORDUP_BUILD_CONTAINER === 'true'){
-      if (process.getuid && process.getuid() > 0) shell.env.WORDUP_UID = process.getuid()
-      //GroupId is currently not used in dockerfiles
-      if (process.getgid) shell.env.WORDUP_GID = process.getgid()
+    let buildDocker = process.env.WORDUP_BUILD_CONTAINER === 'true';
+    if(!buildDocker && this.oclifConfig.platform === 'linux'){
+      // If the current user is not root
+      if (process.getuid && process.getuid() > 0){
+        shell.env.WORDUP_UID = process.getuid()
+        //GroupId is currently not used in dockerfiles
+        if (process.getgid) shell.env.WORDUP_GID = process.getgid()
+
+        buildDocker = true;
+      } 
+    }
+
+    if(buildDocker){
 
       shell.env.WORDUP_DOCKERFILE_WP_PATH = this.wordupDockerPath('wp') 
       shell.env.WORDUP_DOCKERFILE_WPCLI_PATH = this.wordupDockerPath('wp-cli') 
