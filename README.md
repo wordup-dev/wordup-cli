@@ -89,6 +89,7 @@ USAGE
 <!-- usagestop -->
 # Commands
 <!-- commands -->
+* [`wordup deploy`](#wordup-deploy)
 * [`wordup export TYPE`](#wordup-export-type)
 * [`wordup help [COMMAND]`](#wordup-help-command)
 * [`wordup init`](#wordup-init)
@@ -98,6 +99,24 @@ USAGE
 * [`wordup start`](#wordup-start)
 * [`wordup stop`](#wordup-stop)
 * [`wordup wpcli COMMAND`](#wordup-wpcli-command)
+
+## `wordup deploy`
+
+Describe the command here
+
+```
+USAGE
+  $ wordup deploy
+
+OPTIONS
+  -n, --name=name  name to print
+
+DESCRIPTION
+  ...
+  Extra documentation goes here
+```
+
+_See code: [src/commands/deploy.js](https://github.com/wordup-dev/wordup-cli/blob/v0.7.2/src/commands/deploy.js)_
 
 ## `wordup export TYPE`
 
