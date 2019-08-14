@@ -2,8 +2,11 @@
 const {Command, flags} = require('@oclif/command')
 const chalk = require('chalk')
 const shell = require('shelljs')
+const axios = require('axios')
 const Config  = require('./lib/config')
 const Project  = require('./lib/project')
+
+const PUBLIC_API_KEY = 'AIzaSyDePu-M5kQ5X0SBcX2rkBmUODkHrXw0deI'
 
 class Base extends Command {
   async init(err) {
@@ -55,6 +58,57 @@ class Base extends Command {
       error(result.done,{exit:result.code})
     })
   }
+
+
+  isAuthenticated() {
+    const tokenData = this.wordupConfig.get('token', null)
+    if (tokenData) {
+      return true
+    }
+    return false
+  }
+
+  async getUserAuthToken(){
+    const config = this.wordupConfig
+    const tokenData = config.get('token', null)
+
+    return new Promise(resolve => {
+      if (!tokenData) {
+        resolve(false)
+      }
+
+      const timeNow = Math.floor(Date.now() / 1000)
+
+      if ((timeNow + 15) >= tokenData.expiresAt) {
+        console.log('refresh')
+        axios.post('https://securetoken.googleapis.com/v1/token?key='+PUBLIC_API_KEY, {
+          grant_type: 'refresh_token',
+          refresh_token: tokenData.refreshToken
+        }).then(ares => {
+          console.log(`refresh statusCode: ${ares.status}`)
+          const newTokenData = ares.data
+          const newToken = {
+            idToken:newTokenData.id_token,
+            refreshToken:newTokenData.refresh_token,
+            expiresAt:Math.floor(Date.now() / 1000) + parseInt(newTokenData.expires_in,10)
+          }
+          config.set('token', newToken)
+          resolve(newToken)
+        }).catch(error => {
+          if (error.response) {
+            console.log('Unable to refresh token:', error.response.data)
+          }
+        })
+      } else {
+        resolve(tokenData)
+      }
+
+    })
+  }
+
+
+
+
 }
 
 Base.flags = {
