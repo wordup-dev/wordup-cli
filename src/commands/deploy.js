@@ -1,5 +1,6 @@
 const {flags} = require('@oclif/command')
 const fs = require("fs")
+const path = require("path")
 const axios = require('axios')
 
 const fglob = require('fast-glob')
@@ -27,7 +28,7 @@ class DeployCommand extends Command {
     if(!projectToken){
       this.userToken = await this.getUserAuthToken()
       if(!this.userToken){
-        this.log('Please authenticate first with: ')
+        this.log('Please authenticate first with: wordup auth')
         this.exit(2)
       }
     }
@@ -47,14 +48,22 @@ class DeployCommand extends Command {
 
     if(result){
       this.log('---')
-      this.log(result);
+      this.log('Successfully uploaded project')
     }
   }
 
   async listFiles(sourceDirectory){
-    const ig = ignore().add(['/node_modules']);
 
-    const files =  await fglob('**', {
+    const ig = ignore()
+
+    const gitignoreFile = path.join(sourceDirectory, '.gitignore');
+
+    if(fs.existsSync(gitignoreFile)) {
+      ig.add(fs.readFileSync(gitignoreFile).toString());
+    }
+    ig.add(['/node_modules']);
+
+    const files = await fglob('**', {
         dot: true,
         cwd: sourceDirectory,
     });
