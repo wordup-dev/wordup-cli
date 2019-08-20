@@ -112,22 +112,22 @@ class DeployCommand extends Command {
   async createArchive(tmpFile){
     const sourceDirectory = this.wordupProject.getProjectPath()
 
+    try {
+        fs.statSync(sourceDirectory);
+    } catch (err) {
+        if (err.code === "ENOENT") {
+          this.error('Project directory is not readable')
+          return false;
+        }
+    }
+
     await this.getConnectToken()
 
     if(!this.connectToken){
         return false
     }
 
-    try {
-        fs.statSync(sourceDirectory);
-    } catch (err) {
-        if (err.code === "ENOENT") {
-            //Could not read directory
-          return false;
-        }
-        throw err;
-    }
-
+    //Get all files which are not ignored
     const allFiles = await this.listFiles(sourceDirectory);
 
     const archiveResult = await tar.c({

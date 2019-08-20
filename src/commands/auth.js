@@ -1,12 +1,19 @@
 const {flags} = require('@oclif/command')
 const open = require('open')
 const axios = require('axios')
+const express = require('express')
+let portfinder = require("portfinder");
+
+const {randomBytes} = require('crypto')
 
 const Command =  require('../command-base')
 const WordupAPI =  require('../lib/api')
 const PUBLIC_API_KEY = 'AIzaSyDePu-M5kQ5X0SBcX2rkBmUODkHrXw0deI'
 
-const AUTHFLOW_ENDPOINT = 'http://localhost:3000/api/authflow/'
+const OAUTH_WORDUP_AUTH_URL = 'http://localhost:3000/user/oauth/flow'
+const OAUTH_WORDUP_TOKEN_URL = 'https://wordup-c9001.firebaseapp.com/api/authflow/'
+
+portfinder.basePort = 9010;
 
 class AuthCommand extends Command {
   async run() {
@@ -32,7 +39,7 @@ class AuthCommand extends Command {
     }*/
 
     if(!this.isAuthenticated()){
-      await this.startAuthFlow()
+      await this.authFlow()
     } else if(flags.logout){
       this.wordupConfig.set('token', null)
       this.log('Successfully logged out')
@@ -42,75 +49,63 @@ class AuthCommand extends Command {
 
   }
 
-  async startAuthFlow(){
+  async authFlow() {
 
-    //Get session key 
-    let result = null;
-    try {
-      result = await axios.post(AUTHFLOW_ENDPOINT,{type:'cli', info: this.userAgent })
-    }catch(error){
+    const app = express()
+    const state = await randomBytes(24).toString('hex')
 
-    }
+    this.port = await portfinder.getPortPromise()
 
-    if(result.status === 200){
-      this.session_id = result.data.session_id;
-      this.verify_token = result.data.verify_token;
+    app.use((req, res, next) => {
+      res.header("Access-Control-Allow-Origin", "*"); //2do: only from wordup domain
+      res.header("Access-Control-Allow-Credentials", "true");
+      res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
+      res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+      next();
+    });
 
-      await open('http://localhost:3000/user/auth?session='+this.session_id, {wait: false})
-    }
-
-    let jwt_token = null;
-    try {
-      this.log('Waiting ...')
-      jwt_token = await this.checkAuthSession()
-    }catch(error){
-      this.log(error.message)
-      return
-    }
-
-    await this.finishAuthFlow(jwt_token)
-    this.log('Successfully logged in')
-
-  }
-
-  async checkAuthSession(){
-    const sessionId = this.session_id
-    const verifyToken = this.verify_token
-
-    return new Promise((resolve, reject) => {
-        let tries = 0
-        const checkAuthFlow = function() {
-          setTimeout(function() {
-            tries++;
-
-            axios.post(AUTHFLOW_ENDPOINT+'check',{
-                session_id:sessionId,
-                verify_token:verifyToken
-            }).then((res)=>{
-                        
-              if(res.status === 200){
-                const jwt_token = res.data.jwt_token
-                if(jwt_token){
-                  resolve(jwt_token)
-                }else if (tries < 20) {
-                  checkAuthFlow()
-                }else{
-                  reject(new Error('Timeout. Please try again.'))
-                }
-              }
-
-            }).catch(error => {
-              if(error.response.status === 404){
-                reject(new Error('Your login attempt was denied.'))
-              }else{
-                reject(new Error('Unknown error'))
-              }
-            })
-          },1000)
-        }
-        checkAuthFlow()
+    app.get('/',  (req, res) => {
+      res.redirect(OAUTH_WORDUP_AUTH_URL+'?state='+state+'&client_id=cli&redirect_uri=http://localhost:'+this.port)
     })
 
+    app.get('/status',  (req, res) => {
+      res.sendStatus(204)
+    })
+
+    app.get('/oauthtoken', (req, res) => {
+      if (!req.query.code) {
+        return res.sendStatus(403)
+      }
+
+      axios.post(OAUTH_WORDUP_TOKEN_URL, {
+        grant_type: 'authorization_code',
+        code: req.query.code,
+        state: state
+      }).then(ares => {
+        if (ares.status === 200) {
+          return ares.data.jwt_token;          
+        } else {
+          res.json({status:'error'})
+        }
+      }).then(async token => {
+        await this.finishAuthFlow(token)
+        res.json({status:'verified'})
+
+        this.log('Successfully authenticated')
+        process.exit()
+      }).catch(error => {
+        res.json({status:'error', message:error.message})
+      })
+
+    })
+
+    app.listen(this.port, () => {
+      this.log('Please go to your webbrowser on http://localhost:'+this.port+' to fullfill the authentication!')
+      this.log('Waiting for authentication...')
+    })
+
+    // Open OAuth flow url
+    open('http://localhost:'+this.port+'/', {wait: false})
   }
 
   async finishAuthFlow(token){
