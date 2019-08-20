@@ -1,5 +1,5 @@
 # CAUTION: Only change this file if you know what you are doing
-version: "3.7"
+version: "3.3"
 
 services:
   db:
