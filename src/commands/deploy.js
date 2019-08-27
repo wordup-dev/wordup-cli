@@ -9,6 +9,7 @@ const tmp = require("tmp")
 const ignore = require('ignore')
 
 const Command =  require('../command-base')
+const WordupAPI =  require('../lib/api')
 
 class DeployCommand extends Command {
   async run() {
@@ -26,16 +27,18 @@ class DeployCommand extends Command {
     //If no project token is provided, just 
     this.userToken = null;
     if(!projectToken){
-      this.userToken = await this.getUserAuthToken()
+      this.userToken = this.getUserAuthToken()
       if(!this.userToken){
         this.log('Please authenticate first with: wordup auth')
         this.exit(2)
+      }else{
+        this.api = new WordupAPI(this.userToken)
       }
     }
 
     //Set 
     this.projectId = project.wPkg('projectId') || process.env.WORDUP_PROJECT_ID
-    this.connectToken = projectToken || (project.config.connectToken ? project.config.connectToken : null)
+    this.accessToken = projectToken || (project.config.accessToken ? project.config.accessToken : null)
 
     tmp.setGracefulCleanup()
 
@@ -56,12 +59,12 @@ class DeployCommand extends Command {
 
     const ig = ignore()
 
-    const gitignoreFile = path.join(sourceDirectory, '.gitignore');
+    const gitignoreFile = path.join(sourceDirectory, '.gitignore')
 
     if(fs.existsSync(gitignoreFile)) {
-      ig.add(fs.readFileSync(gitignoreFile).toString());
+      ig.add(fs.readFileSync(gitignoreFile).toString())
     }
-    ig.add(['/node_modules']);
+    ig.add(['/node_modules']) //never upload node_modules
 
     const files = await fglob('**', {
         dot: true,
@@ -71,7 +74,7 @@ class DeployCommand extends Command {
     return ig.filter(files);
   }
 
-  async getConnectToken(){
+  async getAccessToken(){
 
     //First check if we have a wordup projectId
     if(!this.projectId){
@@ -79,33 +82,35 @@ class DeployCommand extends Command {
         return false
     }
 
-    if(!this.connectToken){
+    if(!this.accessToken){
         try {
-            const newToken = await this.newConnectToken()
-            this.connectToken = newToken.token_raw
-            this.wordupProject.setProjectConf('connectToken',this.connectToken)
+            const newToken = await this.newAccessToken()
+            this.accessToken = newToken.token_raw
+            this.wordupProject.setProjectConf('accessToken',this.accessToken)
         }catch(error){
-            this.error('No project specific connect token found')
+            this.error(error.message)
         }
     }
   }
 
-  async newConnectToken(){
+  async newAccessToken(){
 
     return new Promise((resolve, reject) => {
 
         let projectId = this.projectId
 
-        if(!projectId || !this.userToken){
-            return reject()
+        if(!projectId){
+            return reject(new Error('No project ID found in your wordup project config'))
         }
-        axios.post('http://localhost:3000/api/user/connectToken/'+projectId, {}, {
-            headers:{
-                'Authorization': "Bearer " + this.userToken.idToken
-            }
-        }).then((response) => {
-            resolve(response.data);
-        }).catch(error => reject())
+
+        this.api.projectAccessToken(projectId).then((response) => {
+            resolve(response.data)
+        }).catch(error => {
+          if(error.response.status === 403){
+            reject(new Error('Access forbidden to the connected user account. Please reauthenticate.'))
+          }
+        })
+          
     })
   }
 
@@ -121,9 +126,9 @@ class DeployCommand extends Command {
         }
     }
 
-    await this.getConnectToken()
+    await this.getAccessToken()
 
-    if(!this.connectToken){
+    if(!this.accessToken){
         return false
     }
 
@@ -163,7 +168,7 @@ class DeployCommand extends Command {
     }
     return axios.post('https://wordup-c9001.firebaseapp.com/api/connect/publishUrl',{semver:this.semverIncrement}, {
         headers:{
-            'Authorization': "Bearer " + this.projectId+'_'+this.connectToken
+            'Authorization': "Bearer " + this.projectId+'_'+this.accessToken
         }
     }).then(res => {
         if(res.status === 200){
@@ -176,7 +181,7 @@ class DeployCommand extends Command {
         }
     }).catch(error => {
         if(error.response.status === 403){
-            this.wordupProject.setProjectConf('connectToken',null)
+            this.wordupProject.setProjectConf('accessToken',null)
             this.error('Unable to connect with your provided project ID and/or project token. Please try again.')
         }else{
             this.error(error.message)

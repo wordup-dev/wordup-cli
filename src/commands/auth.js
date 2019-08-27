@@ -2,31 +2,22 @@ const {flags} = require('@oclif/command')
 const open = require('open')
 const axios = require('axios')
 const express = require('express')
-let portfinder = require("portfinder");
+const portfinder = require("portfinder")
 
 const {randomBytes} = require('crypto')
 
 const Command =  require('../command-base')
 const WordupAPI =  require('../lib/api')
-const PUBLIC_API_KEY = 'AIzaSyDePu-M5kQ5X0SBcX2rkBmUODkHrXw0deI'
 
 const OAUTH_WORDUP_AUTH_URL = 'http://localhost:3000/user/oauth/flow'
-const OAUTH_WORDUP_TOKEN_URL = 'https://wordup-c9001.firebaseapp.com/api/authflow/'
+const OAUTH_WORDUP_GET_TOKEN_URL = 'http://localhost:3000/api/oauthtoken/'
 
-portfinder.basePort = 9010;
+portfinder.basePort = 9010
 
 class AuthCommand extends Command {
   async run() {
     const {flags} = this.parse(AuthCommand)
     const project = this.wordupProject
-
-    if (flags.test) {
-      const api = new WordupAPI(this.config.configDir)
-      const user = await api.getUser()
-      this.log(user)
-      this.exit(0)
-    }
-
 
     /*const wordupOauth = new OAuth(this.config.configDir)
     const isAuth = await wordupOauth.isAuthenticated()
@@ -37,14 +28,24 @@ class AuthCommand extends Command {
     } else {
       this.log('Wordup ist already connected. If you want to authenticate with a different account. Use --logout')
     }*/
-
-    if(!this.isAuthenticated()){
-      await this.authFlow()
-    } else if(flags.logout){
+    if(flags.logout){
       this.wordupConfig.set('token', null)
       this.log('Successfully logged out')
-    } else {
-      this.log('Wordup ist already connected. If you want to authenticate with a different account. Use --logout')
+    }else {
+      const userToken = this.getUserAuthToken()
+
+      if(!userToken){
+        await this.authFlow()
+      } else {
+      
+        //Get user profile
+        const api = new WordupAPI(userToken)
+        const response = await api.userProfile()
+        if(response.status === 200){
+          const data = response.data
+          this.log('Already logged in as '+data.email+'. Use the --logout flag if you want to logout.')
+        }
+      }
     }
 
   }
@@ -77,18 +78,19 @@ class AuthCommand extends Command {
         return res.sendStatus(403)
       }
 
-      axios.post(OAUTH_WORDUP_TOKEN_URL, {
+      axios.post(OAUTH_WORDUP_GET_TOKEN_URL, {
         grant_type: 'authorization_code',
+        client_id:req.query.client_id,
         code: req.query.code,
         state: state
       }).then(ares => {
         if (ares.status === 200) {
-          return ares.data.jwt_token;          
+          return ares.data;          
         } else {
           res.json({status:'error'})
         }
-      }).then(async token => {
-        await this.finishAuthFlow(token)
+      }).then(async data => {
+        this.finishAuthFlow(data)
         res.json({status:'verified'})
 
         this.log('Successfully authenticated')
@@ -97,6 +99,12 @@ class AuthCommand extends Command {
         res.json({status:'error', message:error.message})
       })
 
+    })
+
+    app.get('/deny',  (req, res) => {
+      res.json({status:'denied'})
+      this.log('Authentication denied')
+      process.exit()
     })
 
     app.listen(this.port, () => {
@@ -108,27 +116,15 @@ class AuthCommand extends Command {
     open('http://localhost:'+this.port+'/', {wait: false})
   }
 
-  async finishAuthFlow(token){
-    let result = null;
-
-    try {
-      result = await axios.post('https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key='+PUBLIC_API_KEY,{
-        token:token,
-        returnSecureToken:true
-      })
-    }catch(error){
-      this.log(error.message)
-    }
-    
-    if(result.status === 200){
-      let token = result.data
-      const expiresAt = Math.floor(Date.now() / 1000) + parseInt(token.expiresIn,10)
-      this.wordupConfig.set('token', {idToken:token.idToken, refreshToken:token.refreshToken, expiresAt:expiresAt})
-    }
-
+  finishAuthFlow(data){
+    const created = Math.floor(Date.now() / 1000)
+    this.wordupConfig.set('token', {userId:data.user_id, accessToken:data.access_token,created:created})
   }
 
+  async getUserProfile(){
 
+
+  }
 
 }
 
