@@ -28,7 +28,7 @@
     "@oclif/dev-cli": "^1.22.2",
     "@oclif/test": "^1.2.4",
     "chai": "^4.2.0",
-    "eslint": "^5.16.0",
+    "eslint": "^6.2.2",
     "eslint-config-oclif": "^3.1.0",
     "globby": "^9.2.0",
     "mocha": "^5.2.0",
