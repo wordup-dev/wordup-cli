@@ -1,6 +1,7 @@
 const Command =  require('../command-base')
 const shell = require('shelljs')
 const chalk = require('chalk')
+const child_process = require('child_process')
 
 class WpcliCommand extends Command {
   async run() {
@@ -19,22 +20,30 @@ class WpcliCommand extends Command {
 
     const wpCliCmd = argv.join(' ')
 
-    this.log('Run command: wp ' + wpCliCmd)
-    shell.exec('docker-compose --project-directory ' + this.wordupProject.getProjectPath() + ' run --rm  --no-deps wordpress-cli ' + wpCliCmd)
+    if(wpCliCmd){
+      this.log('Run command: wp ' + wpCliCmd)
+      shell.exec('docker-compose --project-directory ' + this.wordupProject.getProjectPath() + ' run --rm  --no-deps wordpress-cli ' + wpCliCmd)
+    }else{
+      child_process.spawnSync('docker-compose', [ '--project-directory', this.wordupProject.getProjectPath(), 'run','--no-deps', '-u','www-data','wordpress-cli','/bin/sh'], {
+        stdio: 'inherit'
+      })
 
+    }
   }
 }
 
 WpcliCommand.description = `Use an official WordPress CLI command on the current running project
 ...
-As an example: wordup wpcli post list
+As an example: wordup wpcli post list. 
+
+If you run wordup wpcli without any argument, you will directly access the command line of the underlying docker container.
 `
 
 WpcliCommand.strict = false
 WpcliCommand.args = [
   {
     name: 'command',
-    required: true, // make the arg required with `required: true`
+    required: false, // make the arg required with `required: true`
     description: 'the wp cli command', // help description
   },
 ]
