@@ -36,8 +36,7 @@ class DeployCommand extends Command {
       }
     }
 
-    //Set 
-    this.projectId = project.wPkg('projectId') || process.env.WORDUP_PROJECT_ID
+    this.projectSlug = project.wPkg('slugName') || process.env.WORDUP_PROJECT_SLUG
     this.accessToken = projectToken || (project.config.accessToken ? project.config.accessToken : null)
 
     tmp.setGracefulCleanup()
@@ -76,8 +75,8 @@ class DeployCommand extends Command {
 
   async getAccessToken(){
 
-    //First check if we have a wordup projectId
-    if(!this.projectId){
+    //First check if we have a wordup projectSlug
+    if(!this.projectSlug){
         this.error('Please provide a valid wordup project ID in your config.yml')
         return false
     }
@@ -97,13 +96,13 @@ class DeployCommand extends Command {
 
     return new Promise((resolve, reject) => {
 
-        let projectId = this.projectId
+        let projectSlug = this.projectSlug
 
-        if(!projectId){
-            return reject(new Error('No project ID found in your wordup project config'))
+        if(!projectSlug){
+            return reject(new Error('No project slug found in your wordup project config'))
         }
 
-        this.api.projectAccessToken(projectId).then((response) => {
+        this.api.projectAccessToken(projectSlug).then((response) => {
             resolve(response.data)
         }).catch(error => {
           if(error.response.status === 403){
@@ -168,7 +167,7 @@ class DeployCommand extends Command {
     }
     return axios.post('https://wordup-c9001.firebaseapp.com/api/connect/publishUrl',{semver:this.semverIncrement}, {
         headers:{
-            'Authorization': "Bearer " + this.projectId+'_'+this.accessToken
+            'Authorization': "Bearer " + this.projectSlug+'_'+this.accessToken
         }
     }).then(res => {
         if(res.status === 200){
