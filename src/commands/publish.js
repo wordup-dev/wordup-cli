@@ -11,9 +11,9 @@ const ignore = require('ignore')
 const Command =  require('../command-base')
 const WordupAPI =  require('../lib/api')
 
-class DeployCommand extends Command {
+class PublishCommand extends Command {
   async run() {
-    const {flags} = this.parse(DeployCommand)
+    const {flags} = this.parse(PublishCommand)
     
     const projectToken = flags.token || null
     this.semverIncrement = flags.increment
@@ -192,14 +192,14 @@ class DeployCommand extends Command {
 
 }
 
-DeployCommand.description = `Describe the command here
+PublishCommand.description = `Describe the command here
 ...
 Extra documentation goes here
 `
 
-DeployCommand.flags = {
+PublishCommand.flags = {
   increment: flags.string({description: 'Increment a version by the specified level', default: 'minor',options: ['major', 'minor', 'patch']} ),
   token: flags.string({description: 'A provided project token', env: 'WORDUP_PROJECT_AUTH_TOKEN'}),
 }
 
-module.exports = DeployCommand
+module.exports = PublishCommand
