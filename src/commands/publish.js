@@ -106,7 +106,7 @@ class PublishCommand extends Command {
             resolve(response.data)
         }).catch(error => {
           if(error.response.status === 403){
-            reject(new Error('Access forbidden to the connected user account. Please reauthenticate.'))
+            reject(new Error('Access forbidden. Please verify if your local project slug corresponds with your remote wordup project.'))
           }
         })
           

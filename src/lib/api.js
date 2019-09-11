@@ -29,11 +29,11 @@ class WordupAPI {
   }
 
   userProfile(){
-    return this.api.get('/user/profile')
+    return this.api.get('/account/profile')
   } 
 
   projectAccessToken(projectId){
-    return this.api.post('/user/accessToken/'+projectId, {})
+    return this.api.post('/project/'+projectId+'/accessToken', {})
   } 
   
 }

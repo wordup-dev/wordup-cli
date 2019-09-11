@@ -9,7 +9,7 @@ const {randomBytes} = require('crypto')
 const Command =  require('../command-base')
 const WordupAPI =  require('../lib/api')
 
-const OAUTH_WORDUP_AUTH_URL = 'http://localhost:3000/user/oauth/flow'
+const OAUTH_WORDUP_AUTH_URL = 'http://localhost:3000/account/oauth/flow'
 const OAUTH_WORDUP_GET_TOKEN_URL = 'http://localhost:3000/api/oauthtoken/'
 
 portfinder.basePort = 9010
