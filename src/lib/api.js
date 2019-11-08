@@ -1,39 +1,47 @@
 const axios = require('axios')
+const OAuth = require('./oauth')
 
 class WordupAPI {
-  constructor(userToken) {
+  constructor(wordupConfig) {
 
-    if(!userToken){
-      throw new Error('No user token provided. Please authenticate')
-    }
-
-    this.userToken = userToken
+    this.oauth = new OAuth(wordupConfig)
 
     this.api = axios.create({
-      baseURL: 'https://wordup-c9001.firebaseapp.com/api',
+      baseURL: wordupConfig.get('api_url') ,
     })
 
-    this.api.interceptors.request.use(function (config) {
-      config.headers = {Authorization: 'token ' + userToken.userId+'_'+userToken.accessToken}
+    this.api.interceptors.request.use(async (config) => {
+      const token = await this.oauth.getToken()
+
+      if (token) {
+        config.headers = {Authorization: 'Bearer ' + token.access_token}
+      }
       return config
-    }, function (error) {
+    }, (error) => {
       return Promise.reject(error)
     })
 
-    this.api.interceptors.response.use(function (response) {
+    this.api.interceptors.response.use((response) => {
       return response
-    }, function (error) {
+    }, (error) => {
       // Optional: Check error message
-      return Promise.reject(error)
+      let message = 'Unknown error requesting the wordup API. Please try again';
+      if(error.response.status === 401){
+        message = 'The authentication credentials were not provided or correct. Please reauthenticate.'
+      }else if(error.response.status){
+        message = 'The request to the wordup API ended with a status code of '+error.response.status
+      }
+
+      throw Error(message);
     })
   }
 
   userProfile(){
-    return this.api.get('/account/profile')
+    return this.api.get('/user/')
   } 
 
   projectAccessToken(projectId){
-    return this.api.post('/project/'+projectId+'/accessToken', {})
+    return this.api.post('/project_tokens/', {project:projectId, type:'custom'})
   } 
   
 }

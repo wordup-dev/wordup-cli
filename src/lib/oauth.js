@@ -2,37 +2,38 @@ const open = require('open')
 const axios = require('axios')
 const express = require('express')
 
-const Config = require('./config')
-
-const CLIENT_ID = 'E85PAIqIFf2Do4ACHp8vbQRpjgCDr6s8rzs4i7SM'
-
-const RANDOM_STATE = 'random'
-
-const OAUTH_WORDUP_AUTH_URL = 'http://localhost:8042/o/authorize/?client_id=' + CLIENT_ID + '&state=' + RANDOM_STATE + '&response_type=code'
-const OAUTH_WORDUP_TOKEN_URL = 'http://localhost:8042/o/token/'
-const OAUTH_WORDUP_REVOKE_TOKEN_URL = 'http://localhost:8042/o/revoke_token/'
+const CLIENT_ID = 'qC4eDwvJEx0nICGCRIbh2HRiH6FStmuGzFmruEmt'
+const RANDOM_STATE = ''
 
 class OAuth {
-  constructor(configDir) {
-    this._wordupConfigstore = new Config(configDir)
+  constructor(wordupConfig) {
+    this._wordupConfigstore = wordupConfig
+
+    this.OAUTH_WORDUP_AUTH_URL = wordupConfig.get('app_url') + '/account/oauth/flow/'
+    this.OAUTH_WORDUP_TOKEN_URL = wordupConfig.get('api_url') +  '/o/token/'
+    this.OAUTH_WORDUP_REVOKE_TOKEN_URL = wordupConfig.get('api_url') + '/o/revoke_token/'
+
   }
 
   authFlow() {
     const config = this._wordupConfigstore
 
+    const redirectUri = 'http://localhost:8442/oauthtoken'
     const app = express()
 
-    app.get('/', function (req, res) {
-      res.redirect(OAUTH_WORDUP_AUTH_URL)
+    app.get('/',  (req, res) => {
+      const params = '?client_id='+CLIENT_ID+'&state=something&redirect_uri='+encodeURIComponent(redirectUri)
+      res.redirect(this.OAUTH_WORDUP_AUTH_URL+params)
     })
 
-    app.get('/oauthtoken', function (req, res) {
+    app.get('/oauthtoken',  (req, res) => {
       if (req.query.code) {
-        axios.post(OAUTH_WORDUP_TOKEN_URL, {
+        axios.post(this.OAUTH_WORDUP_TOKEN_URL, {
           grant_type: 'authorization_code',
           code: req.query.code,
           state: req.query.state,
           client_id: CLIENT_ID,
+          redirect_uri:redirectUri
         }).then(ares => {
           if (ares.status === 200) {
             const newTokenData = ares.data
@@ -45,6 +46,8 @@ class OAuth {
             res.send('Error: Please try it again.')
           }
         }).catch(error => {
+          console.log(error);
+
           res.send('Error: Please try it again.')
         })
       } else {
@@ -52,13 +55,13 @@ class OAuth {
       }
     })
 
-    app.get('/verified', function (req, res) {
+    app.get('/verified', (req, res) => {
       res.send('Successful verified')
 
       process.exit()
     })
 
-    app.listen(8442, function () {
+    app.listen(8442,  () => {
       console.log('Please go to your webbrowser on http://localhost:8442/ to fullfill the authentication!')
     })
 
@@ -80,7 +83,7 @@ class OAuth {
 
       if ((timeNow + 15) >= tokenData.expires_at) {
         console.log('refresh')
-        axios.post(OAUTH_WORDUP_TOKEN_URL, {
+        axios.post(this.OAUTH_WORDUP_TOKEN_URL, {
           grant_type: 'refresh_token',
           refresh_token: tokenData.refresh_token,
           state: RANDOM_STATE,
@@ -109,7 +112,7 @@ class OAuth {
     const tokenData = config.get('token')
 
     if (tokenData) {
-      axios.post(OAUTH_WORDUP_REVOKE_TOKEN_URL, {
+      axios.post(this.OAUTH_WORDUP_REVOKE_TOKEN_URL, {
         token: tokenData.refresh_token,
         client_id: CLIENT_ID,
         token_type_hint: 'refresh_token',

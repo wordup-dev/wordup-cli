@@ -21,18 +21,20 @@ class PublishCommand extends Command {
     const project = this.wordupProject
 
     if (!project.isExecWordupProject()) {
+
       this.exit(1)
     } 
 
     //If no project token is provided, just 
     this.userToken = null;
     if(!projectToken){
+
       this.userToken = this.getUserAuthToken()
       if(!this.userToken){
         this.log('Please authenticate first with: wordup auth')
         this.exit(2)
       }else{
-        this.api = new WordupAPI(this.userToken)
+        this.api = new WordupAPI(this.wordupConfig)
       }
     }
 
@@ -106,7 +108,9 @@ class PublishCommand extends Command {
             resolve(response.data)
         }).catch(error => {
           if(error.response.status === 403){
-            reject(new Error('Access forbidden. Please verify if your local project slug corresponds with your remote wordup project.'))
+            reject(new Error('Access forbidden. Please verify that your account has access to this project.'))
+          }else{
+            reject(error.message);
           }
         })
           
@@ -126,11 +130,9 @@ class PublishCommand extends Command {
     }
 
     await this.getAccessToken()
-
     if(!this.accessToken){
         return false
     }
-
     //Get all files which are not ignored
     const allFiles = await this.listFiles(sourceDirectory);
 
@@ -155,6 +157,7 @@ class PublishCommand extends Command {
   }
 
   async uploadArchive(archiveResult){
+    const api_url = this.wordupConfig.get('api_url')
 
     const data = fs.createReadStream(archiveResult.file)
 
@@ -162,12 +165,13 @@ class PublishCommand extends Command {
         headers: {
             'Content-Type': "application/gzip",
             'Content-Length': archiveResult.size,
-            'x-goog-meta-semver': this.semverIncrement
+            'x-goog-meta-semver': this.semverIncrement,
+            'x-goog-meta-buildtype':'release'
         }
     }
-    return axios.post('https://wordup-c9001.firebaseapp.com/api/connect/publishUrl',{semver:this.semverIncrement}, {
+    return axios.post(api_url+'/projects/'+this.projectSlug+'/build_url/',{semver:this.semverIncrement, build_type:'release'}, {
         headers:{
-            'Authorization': "Bearer " + this.projectSlug+'_'+this.accessToken
+            'Authorization': "token " +this.accessToken
         }
     }).then(res => {
         if(res.status === 200){
@@ -180,6 +184,7 @@ class PublishCommand extends Command {
         }
     }).catch(error => {
         if(error.response.status === 403){
+            console.log(error.response);
             this.wordupProject.setProjectConf('accessToken',null)
             this.error('Unable to connect with your provided project ID and/or project token. Please try again.')
         }else{

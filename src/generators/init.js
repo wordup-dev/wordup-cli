@@ -15,7 +15,7 @@ class WordupInitGenerator extends Generator {
       return false
     }
   
-    if (!val.match(/^([a-z]|\_)/i)) {
+    if (!val.match(/^([a-z])/i)) {
       return 'Please start with a letter'
     }
   
