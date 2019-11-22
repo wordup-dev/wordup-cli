@@ -8,8 +8,8 @@ const tar = require("tar")
 const tmp = require("tmp")
 const ignore = require('ignore')
 
-const Command =  require('../command-base')
-const WordupAPI =  require('../lib/api')
+const Command =  require('../../command-base')
+const WordupAPI =  require('../../lib/api')
 
 class PublishCommand extends Command {
   async run() {
@@ -17,13 +17,17 @@ class PublishCommand extends Command {
     
     const projectToken = flags.token || null
     this.semverIncrement = flags.increment
+    this.publishEnv = flags.env
 
     const project = this.wordupProject
 
     if (!project.isExecWordupProject()) {
-
       this.exit(1)
     } 
+
+    if(project.wPkg('type') === 'installation'){
+      this.error('You can not publish a project of type "installation"')
+    }
 
     //If no project token is provided, just 
     this.userToken = null;
@@ -166,10 +170,10 @@ class PublishCommand extends Command {
             'Content-Type': "application/gzip",
             'Content-Length': archiveResult.size,
             'x-goog-meta-semver': this.semverIncrement,
-            'x-goog-meta-buildtype':'release'
+            'x-goog-meta-buildtype':this.publishEnv
         }
     }
-    return axios.post(api_url+'/projects/'+this.projectSlug+'/build_url/',{semver:this.semverIncrement, build_type:'release'}, {
+    return axios.post(api_url+'/projects/'+this.projectSlug+'/build_url/',{semver:this.semverIncrement, build_type:this.publishEnv}, {
         headers:{
             'Authorization': "token " +this.accessToken
         }
@@ -183,12 +187,23 @@ class PublishCommand extends Command {
             return true
         }
     }).catch(error => {
+        if(!error.response){
+          return this.error(error.message)
+        }
+
         if(error.response.status === 403){
-            console.log(error.response);
             this.wordupProject.setProjectConf('accessToken',null)
             this.error('Unable to connect with your provided project ID and/or project token. Please try again.')
-        }else{
-            this.error(error.message)
+        }else if(error.response.status === 400){
+          if(error.response.data){
+            let message = 'Could not proceed \n\n'
+            const errorMsgs = error.response.data
+            const fields = Object.keys(errorMsgs)
+            fields.forEach(field => {
+              message = message + field.toUpperCase() +':\n' + errorMsgs[field].join('\n')
+            })
+            this.error(message)
+          }
         }
     });
 
@@ -197,14 +212,18 @@ class PublishCommand extends Command {
 
 }
 
-PublishCommand.description = `Describe the command here
+PublishCommand.description = `Publish your WordPress theme or plugin to your private theme/plugin directory on wordup.
 ...
-Extra documentation goes here
+The private directory on wordup manages your WordPress plugin and theme projects in the cloud.
+After publishing your theme or plugin, all WordPress installations can update your theme/plugin to the new project version.
 `
 
 PublishCommand.flags = {
+  env:flags.string({description: 'To what environment should be published', required:true, options: ['release', 'staging']} ),
   increment: flags.string({description: 'Increment a version by the specified level', default: 'minor',options: ['major', 'minor', 'patch']} ),
   token: flags.string({description: 'A provided project token', env: 'WORDUP_PROJECT_AUTH_TOKEN'}),
 }
+
+PublishCommand.hidden = true
 
 module.exports = PublishCommand

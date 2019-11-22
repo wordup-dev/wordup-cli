@@ -2,8 +2,12 @@ const {flags} = require('@oclif/command')
 
 const shell = require('shelljs')
 const open = require('open')
-const fs = require('fs')
+const fs = require('fs-extra')
 const chalk = require('chalk')
+const tcpPortUsed = require('tcp-port-used')
+const tar = require('tar')
+const tmp = require('tmp')
+const path = require('path')
 
 const Command =  require('../command-base')
 const utils =  require('../lib/utils')
@@ -13,8 +17,8 @@ const InstallationPrompt =  require('../prompts/installation')
 class InstallCommand extends Command {
   async run() {
     const {flags} = this.parse(InstallCommand)
-    const forceInstall = flags.force
     const project = this.wordupProject
+
     if (!project.isExecWordupProject()) {
       this.exit(1)
     }
@@ -31,7 +35,15 @@ class InstallCommand extends Command {
 
     //If no custom port passed: assign a new port
     if(flags.port === '8000' && !project.wPkg('port')){
-      flags.port = project.assignNewPort(flags.port)
+      flags.port = await project.assignNewPort(flags.port)
+    }else{
+      //check if there is a port number in config. Use it if no custom port is specified
+      if(project.wPkg('port') && (flags.port === '8000')) flags.port = project.wPkg('port')
+
+      const portInUse = await tcpPortUsed.check(parseInt(flags.port,10))
+      if(portInUse){
+        this.error('The selected port '+flags.port+' is in use')
+      }
     }
 
     // Get the installation config from config.yml
@@ -54,33 +66,22 @@ class InstallCommand extends Command {
     }else if(!wordupConnect && wpInstall.type === 'wordup-connect'){
       wordupConnect = wpInstall.config
     }else if(!wordupArchive && !wordupConnect && wpInstall.type === 'new'){
-      if(wpInstall.config.siteUrl && !flags.siteurl) flags.siteurl = wpInstall.config.siteUrl
+      //if(wpInstall.config.siteUrl && !flags.siteurl) flags.siteurl = wpInstall.config.siteUrl
     }
 
-    //check if there is a port number in config. Use it if no custom port is specified
-    if(project.wPkg('port') && (flags.port === '8000')) flags.port = project.wPkg('port')
-
-    let installParams = ''
-    let addVolumes = ''
-
     if (wordupArchive) {
-      if (utils.isValidUrl(wordupArchive)) {
-        this.log('Download wordup archive from ' + wordupArchive)
-        installParams += ' --wordup-archive=' + wordupArchive
-      } else {
-        
-        this.log('Installing archive from path: '+wordupArchive)
 
-        if (!fs.existsSync(wordupArchive)) {
-          this.error('Unable to read local archive file', {exit: 1})
+        this.log('Trying to install archive from: '+wordupArchive)
+
+        try {
+          wordupArchive = await this.verifyInstallationArchive(wordupArchive)
+        }catch(e){
+          this.error(e.message)
         }
-        const path = require('path')
-
-        addVolumes = ' -v ' + path.resolve(wordupArchive) + ':/source/' + path.basename(wordupArchive)
-        installParams += ' --wordup-archive=' + path.basename(wordupArchive)
-      }
     } else if (wordupConnect) {
-      let privateKey = (flags['private-key'] || installPrompts.privateKey)
+      
+      this.error('This feature is under development and will be released soon')
+      /*let privateKey = (flags['private-key'] || installPrompts.privateKey)
       if (!privateKey) {
         await installPrompts.askWordupConnect(wordupConnect)
         privateKey = installPrompts.privateKey
@@ -96,25 +97,20 @@ class InstallCommand extends Command {
         this.error('Could not process updraftplus backup', {exit: 1})
       } else {
         this.error('Could not connect with WordPress website (have you installed the wordup plugin on your server?).', {exit: 1})
-      }
+      }*/
     }
 
-    // Check if scaffold src files
-    const projectConf = project.config || false
-    if (projectConf && projectConf.scaffoldOnInstall !== false) {
-      installParams += ' --scaffold'+(projectConf.scaffoldOnInstall !== true ? '='+projectConf.scaffoldOnInstall : '')
-    }
+    const siteUrl = 'http://localhost:'+flags.port
 
-    //Set wp url. Only url OR port is allowed
-    if(flags.siteurl){
-      installParams += ' --siteurl='+flags.siteurl
-    }
-
-    //Set install params
+    //Check project type specific things
+    this.checkProjectType()
+    //Set install startup script
+    this.createWordupScript(wordupArchive)
+    //Prepare docker-compose specific settings
     project.prepareDockerComposeUp(flags.port)
-
+    
     // ------- Install docker containers -----
-    await this.customLogs('Installing wordup project and connected docker containers (can take some minutes)', (resolve, reject, showLogs) => {
+    await this.customLogs('Installing wordup project and booting docker containers (can take some minutes)', (resolve, reject, showLogs) => {
       shell.exec('docker-compose --project-directory ' + project.getProjectPath() + ' up -d --build',{silent: !showLogs}, function (code, _stdout, _stderr) {
         if (code === 0) {
           resolve({done: '✔', code:code})
@@ -124,60 +120,204 @@ class InstallCommand extends Command {
       })
     })
 
-    // ----- Set up the wordpress installation  ----
-    await this.customLogs('Waiting for the containers to boot', (resolve, reject, showLogs) => {
-      
-      let tries = 0
-      const checkDBConnection = function() {
-        setTimeout(function() {
-          tries++;
-          shell.exec('docker-compose --project-directory ' + project.getProjectPath() + ' run --rm --no-deps wordpress-cli db check', {silent: true}, function (code, _stdout, _stderr){
-            if(code === 0){
-              resolve({done: '✔', code:0})
-            }else if (tries < 100) {
-              checkDBConnection()
-            }else{
-              reject({done: 'Could not establish a WordPress DB connection', code:1})
-            }
-          })
-        }, 3000);
-      }
-      checkDBConnection()
-
+    // ----- Check if server is accessible ----
+    await this.customLogs('Waiting for the containers to initialize', (resolve, reject, showLogs) => {
+      project.checkLiveliness(siteUrl).then(res => resolve(res)).catch(e => reject(e))
     })
 
-    const installCode = await this.customLogs('Setting-up WordPress based on your .wordup/config.yml', (resolve, reject, showLogs) => {
-      shell.exec('docker-compose --project-directory ' + project.getProjectPath() + ' run --rm --no-deps' + addVolumes + ' wordpress-cli wordup install ' + project.getWordupPkgB64() + installParams, {silent: !showLogs}, function (code, _stdout, _stderr) {
-        if(code === 0){
-          resolve({done: '✔', code:code})
-        }else{
-          reject({done: 'There was an error with setting-up WordPress', code:code})
-        }
-      })
-    })
-
-    if(flags.siteurl) project.setProjectConf('customSiteUrl', flags.siteurl)
+    this.log('')
+    this.log('"'+project.wPkg('projectName') + '" successfully installed.')
 
     project.setProjectConf('installedOnPort', flags.port)
     project.setProjectConf('listeningOnPort', flags.port)
     project.setProjectConf('scaffoldOnInstall', false)
-    
-    this.log('')
-    this.log('"'+project.wPkg('projectName') + '" successfully installed.')
 
     //Print the urls and credentials
-    utils.printDevServerInfos(this.log, flags.port, shell.env.WORDUP_MAIL_PORT, project)
-
-    await open( (flags.siteurl ? flags.siteurl : 'http://localhost:' + flags.port)+'/wp-admin' , {wait: false})
-
-
+    utils.printDevServerInfos(this.log, flags.port, project)
+    await open( siteUrl+'/wp-admin' , {wait: false})
+    
   }
+
+  checkProjectType(){
+    if(this.wordupProject.wPkg('type') === 'installation'){
+      let srcFiles = []
+      try{
+        srcFiles = fs.readdirSync(this.wordupProject.getProjectPath(this.wordupProject.wPkg('srcFolder', 'src')))
+      }catch(e){}
+
+      if(srcFiles.length > 0){
+        this.error('Your source folder is not empty. Projects with type "installation" need an empty source folder in order to be installed correctly.',{exit:1})
+      }
+    }
+  }
+
+  createWordupScript(initFromArchiveJson){
+    const projectType = this.wordupProject.wPkg('type')
+    const customShellScript = this.wordupProject.getProjectConfigPath('wordup.sh')
+
+    fs.copySync(this.wordupProject.wordupDockerPath('wordup.sh'), customShellScript)
+    
+    const plugins = this.wordupProject.wPkg('wpInstall.plugins', {})
+    const themes = this.wordupProject.wPkg('wpInstall.themes', {})
+
+    let stream = fs.createWriteStream(customShellScript, {flags: 'a'})
+
+    // Create skript for installation archive only
+    if(initFromArchiveJson){
+      let excludeSrc = ''
+
+      stream.write('if [ $(sudo -u daemon wp core version) != "'+initFromArchiveJson.wp_version+'" ]; then sudo -u daemon wp core update --force --version='+initFromArchiveJson.wp_version+'; fi'+'\n')
+      
+      if(projectType === 'installation'){
+        stream.write('sudo rm -rf /bitnami/wordpress/wp-content/*'+'\n')
+      }else{
+        excludeSrc = '--exclude="backup/wp-content/'+projectType+'/'+this.wordupProject.wPkg('slugName')+'/*"'
+      }
+
+      stream.write('sudo tar -xvf /wordup/dist/'+initFromArchiveJson.path+' -C /bitnami/wordpress '+excludeSrc+' --strip=1 --skip-old-files'+'\n')
+      stream.write('sudo -u daemon wp db import /bitnami/wordpress/sql_dump.sql'+'\n')
+      stream.write('sudo rm /bitnami/wordpress/sql_dump.sql /bitnami/wordpress/info.json'+'\n')
+
+      stream.end()
+      return
+    }
+
+
+    // ----- Custom language ----
+    const lang = this.wordupProject.wPkg('wpInstall.language', 'en_US')
+    if(lang !== 'en_US'){
+      stream.write('sudo -u daemon wp language core install '+lang+' --activate'+'\n')
+    }
+
+    // ----- Custom version ----
+    const version = this.wordupProject.wPkg('wpInstall.version', null)
+    if(version && version !== 'latest'){
+      stream.write('sudo -u daemon wp core update --force --version='+version+'\n')
+    }
+
+    // ---- Themes & plugins
+    Object.keys(plugins).forEach(value => {
+      let version = plugins[value] !== 'latest' ? ' --version='+plugins[value] : ''
+      stream.write('sudo -u daemon wp plugin install '+value+version+'\n')
+    })
+
+    Object.keys(themes).forEach(value => {
+      let version = themes[value] !== 'latest' ? ' --version='+themes[value] : ''
+      stream.write('sudo -u daemon wp theme install '+value+version+'\n')
+    })
+
+    // ------ Roles ------
+    const roles = this.wordupProject.wPkg('wpInstall.roles', [])
+    roles.forEach(role => {
+      let clone_from = role.hasOwnProperty('clone_from') ? ' --clone='+role.clone_from : ''
+      stream.write('sudo -u daemon wp role create '+role.key+' "'+role.name+'"'+clone_from+'\n')
+
+      if(role.hasOwnProperty('capabilities') && typeof role.capabilities === 'object'){
+        role.capabilities.forEach(cap => {
+          stream.write('sudo -u daemon wp cap add '+role.key+' '+cap+' --quiet'+'\n')
+        })
+      }
+
+    });
+
+    // ------ Users ------
+    const users = this.wordupProject.wPkg('wpInstall.users', [])
+    users.forEach((user, index) => {
+      if(index > 0){
+          stream.write('sudo -u daemon wp user create "'+user.name+'" '+user.email+' --role='+user.role+' --user_pass="'+user.password+'" --quiet'+'\n')
+      }
+    })
+
+    // ------ Media ------
+    const mediaPath = this.wordupProject.getProjectPath('.wordup','media')
+    if (fs.existsSync(mediaPath)) {
+        stream.write('sudo -u daemon wp media import /wordup/config/media/* --user=1'+'\n')
+    }
+
+    // ------ Scaffold ---
+    const scaffold = this.wordupProject.getProjectPath(this.wordupProject.wPkg('srcFolder', 'src'), '.scaffold')
+    if (fs.existsSync(scaffold)) {
+      if(projectType === 'plugins'){
+        stream.write('sudo -u daemon wp scaffold plugin '+this.wordupProject.wPkg('slugName')+'\n')
+      }else if(projectType === 'themes'){
+        stream.write('sudo -u daemon wp scaffold _s '+this.wordupProject.wPkg('slugName')+'\n')
+      }
+      fs.unlinkSync(scaffold)
+    }
+
+    stream.end()
+  }
+
+  async verifyInstallationArchive(tarballPath){
+
+    if(utils.isValidUrl(tarballPath)) {
+      const url = tarballPath
+      tarballPath =  'archive-download-'+Math.floor(Date.now() / 1000)+'.tar.gz'
+      try {
+        await this.downloadArchive( url, tarballPath )
+      }catch(e){
+        return Promise.reject(e)
+      }
+    }
+
+    return new Promise((resolve, reject) => {
+
+      const tarballPathAbs = this.wordupProject.getProjectPath(this.wordupProject.wPkg('distFolder', 'dist'), tarballPath)
+
+      if (!fs.existsSync(tarballPathAbs)) {
+        return reject(new Error('Local installation archive not found'))
+      }      
+      
+      const tmpobj = tmp.dirSync({unsafeCleanup:true})
+      tar.x({
+          file: tarballPathAbs,
+          cwd:tmpobj.name,
+          strip: 1,
+      },['backup/info.json']).then(_=> {
+        const jsonInfo = path.join(tmpobj.name, 'info.json')
+        try {
+          const infos = fs.readJSONSync(jsonInfo)
+          infos.path = tarballPath
+
+          this.log('')
+          this.log('WP version: '+infos.wp_version)
+          this.log('Created by: '+infos.source)
+          this.log('Created at: '+infos.created)
+          this.log('')
+
+          return resolve(infos)
+        }catch(e){
+          return reject(new Error('Could not read the installation archive'))
+        }
+      }).catch(e => reject(e)).finally(() => tmpobj.removeCallback())
+    })
+  }
+
+
+  async downloadArchive(url, tarballName) {  
+    const axios = require('axios')
+
+    const tarballPathAbs = this.wordupProject.getProjectPath(this.wordupProject.wPkg('distFolder', 'dist'), tarballName)
+    const writer = fs.createWriteStream(tarballPathAbs)
+  
+    const response = await axios.get(url, {
+      responseType: 'stream'
+    })
+  
+    response.data.pipe(writer)
+  
+    return new Promise((resolve, reject) => {
+      writer.on('finish', resolve)
+      writer.on('error', reject)
+    })
+  }
+
+
 }
 
 InstallCommand.description = `Install and start the WordPress development server
 ...
 If there is no wpInstall config in .wordup/config.yml, a setup for your installation will be shown.
-You can set a custom site url for WordPress, but please be aware that you have to proxy this url to your localhost:port
 
 The web frontend for the catched emails (MailHog) is available on localhost:[WORDPRESS_PORT + 1]
 
@@ -189,8 +329,6 @@ Note: Flags in this command overrule the wordup config.yml.
 InstallCommand.flags = {
   ...Command.flags,
   port: flags.string({char: 'p', description: 'Install on a different port', default:'8000'}),
-  siteurl: flags.string({description: 'Specify a custom WordPress site url. Use --help for details.'}),
-  force: flags.boolean({char: 'f', description: 'Force the installation of the project (deprecated)', hidden:true}),
   prompt: flags.boolean({description: 'If you want to do the setup again', exclusive: ['archive','connect']}),
   archive: flags.string({description: 'Install from a wordup archive.'}),
   connect: flags.string({description: 'Install from a WordPress running website.', exclusive: ['archive']}),

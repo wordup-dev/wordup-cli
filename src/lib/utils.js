@@ -22,13 +22,13 @@ module.exports = {
     return aPath;
   },
 
-  printDevServerInfos(log, wpPort, mailhogPort, project){
+  printDevServerInfos(log, wpPort, project){
       log('')
       log('╔═════════════════════════════════════════════════╗')
       log('╠═ Server                                        ═╣')
       log('╠═════════════════════════════════════════════════╣')
       log('║ WordPress               : http://localhost:'+wpPort+' ║')
-      log('║ MailHog (E-Mail catcher): http://localhost:'+mailhogPort+' ║')
+      log('║ MailHog (E-Mail catcher): http://localhost:'+(parseInt(wpPort, 10)+1)+' ║')
       log('╚═════════════════════════════════════════════════╝')
 
       const users = project.wPkg('wpInstall.users')
@@ -46,6 +46,17 @@ module.exports = {
         log('╚═════════════════════════════════════════════════╝')
       }
       log('')
+  },
+  formatBytes(bytes, decimals = 2) {
+    if (bytes === 0) return '0 Bytes';
+
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
   }
 
 }

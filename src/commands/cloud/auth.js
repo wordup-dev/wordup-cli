@@ -1,15 +1,12 @@
 const {flags} = require('@oclif/command')
-const portfinder = require("portfinder")
 
-const Command =  require('../command-base')
-const WordupAPI =  require('../lib/api')
+const Command =  require('../../command-base')
+const WordupAPI =  require('../../lib/api')
 
-portfinder.basePort = 9010
 
 class AuthCommand extends Command {
   async run() {
     const {flags} = this.parse(AuthCommand)
-    const project = this.wordupProject
 
     /*const wordupOauth = new OAuth(this.config.configDir)
     const isAuth = await wordupOauth.isAuthenticated()
@@ -47,7 +44,7 @@ class AuthCommand extends Command {
 
 }
 
-AuthCommand.description = `Authenticate the CLI with wordup
+AuthCommand.description = `Authenticate the CLI with your wordup account
 ...
 This feature is currently not active
 `

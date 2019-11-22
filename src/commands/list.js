@@ -20,10 +20,7 @@ class ListCommand extends Command {
         }else{
             const configPath = path.join(projects[key].path, '.wordup','config.yml')
 
-            //Legacy support 
-            const oldPackagePath = path.join(projects[key].path, 'package.json')
-
-            if (!fs.existsSync(configPath) || !fs.existsSync(oldPackagePath)) {
+            if (!fs.existsSync(configPath)) {
               delete projects[key]
             }
         }

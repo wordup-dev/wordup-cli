@@ -16,7 +16,7 @@ class SnippetCommand extends Command {
       this.exit(4)
     }
 
-    this.wordupProject.prepareDockerComposeUp(this.wordupProject.config.listeningOnPort)
+    this.wordupProject.prepareDockerComposeUp()
 
     let addArgs = ''
     if(this.wordupProject.wPkg('type') === 'themes'){
@@ -25,7 +25,7 @@ class SnippetCommand extends Command {
         addArgs += '--plugin='+this.wordupProject.wPkg('slugName')
     }
 
-    shell.exec('docker-compose --project-directory ' + this.wordupProject.getProjectPath() + ' run --rm --no-deps wordpress-cli scaffold '+args.type+' '+slugify(args.name)+' '+addArgs)
+    shell.exec('docker-compose --project-directory ' + this.wordupProject.getProjectPath() + ' exec -T wordpress sudo -u daemon wp scaffold '+args.type+' '+slugify(args.name)+' '+addArgs)
 
   }
 }

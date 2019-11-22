@@ -7,7 +7,7 @@ class WordupAPI {
     this.oauth = new OAuth(wordupConfig)
 
     this.api = axios.create({
-      baseURL: wordupConfig.get('api_url') ,
+      baseURL: wordupConfig.get('api_url')
     })
 
     this.api.interceptors.request.use(async (config) => {
@@ -28,6 +28,15 @@ class WordupAPI {
       let message = 'Unknown error requesting the wordup API. Please try again';
       if(error.response.status === 401){
         message = 'The authentication credentials were not provided or correct. Please reauthenticate.'
+      }else if(error.response.status === 400){
+        if(error.response.data){
+          message = 'Please verify your data \n\n'
+          const errorMsgs = error.response.data
+          const fields = Object.keys(errorMsgs)
+          fields.forEach(field => {
+            message = message + field.toUpperCase() +':\n' + errorMsgs[field].join('\n')
+          })
+        }
       }else if(error.response.status){
         message = 'The request to the wordup API ended with a status code of '+error.response.status
       }
@@ -42,6 +51,10 @@ class WordupAPI {
 
   projectAccessToken(projectId){
     return this.api.post('/project_tokens/', {project:projectId, type:'custom'})
+  } 
+
+  wpNodeSetup(server, settings){
+    return this.api.post('/wp_nodes/upload_setup/', {server:server, settings:settings})
   } 
   
 }

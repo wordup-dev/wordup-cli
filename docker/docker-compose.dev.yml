@@ -1,0 +1,46 @@
+version: '3.7'
+
+services:
+  mariadb:
+    image: 'bitnami/mariadb:10.3'
+    restart: always
+    labels:
+      - 'wordup.dev'
+    volumes:
+      - 'mariadb_data:/bitnami'
+    environment:
+      - MARIADB_USER=bn_wordpress
+      - MARIADB_DATABASE=bitnami_wordpress
+      - ALLOW_EMPTY_PASSWORD=yes
+  wordpress:
+    image: 'bitnami/wordpress:5'
+    restart: always
+    ports:
+      - '8000:80'
+
+    volumes:
+      - 'wordpress_data:/bitnami'
+    labels:
+      - 'wordup.dev'
+    depends_on:
+      - mariadb
+      - mail
+    environment:
+      - MARIADB_HOST=mariadb
+      - MARIADB_PORT_NUMBER=3306
+      - WORDPRESS_DATABASE_USER=bn_wordpress
+      - WORDPRESS_DATABASE_NAME=bitnami_wordpress
+      - ALLOW_EMPTY_PASSWORD=yes
+      - WORDUP_DEBUG=yes
+      
+  mail:
+    image: mailhog/mailhog
+    restart: always
+    labels:
+      - 'wordup.dev'
+    ports:
+      - '8025:8025'
+
+volumes:
+  mariadb_data: {}
+  wordpress_data: {}

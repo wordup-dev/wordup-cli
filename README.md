@@ -89,7 +89,7 @@ USAGE
 <!-- usagestop -->
 # Commands
 <!-- commands -->
-* [`wordup deploy`](#wordup-deploy)
+* [`wordup cloud:clone`](#wordup-cloudclone)
 * [`wordup export TYPE`](#wordup-export-type)
 * [`wordup help [COMMAND]`](#wordup-help-command)
 * [`wordup init`](#wordup-init)
@@ -100,23 +100,25 @@ USAGE
 * [`wordup stop`](#wordup-stop)
 * [`wordup wpcli COMMAND`](#wordup-wpcli-command)
 
-## `wordup deploy`
+## `wordup cloud:clone`
 
-Describe the command here
+Clone current running WordPress installation to a server/cluster of your wordup account
 
 ```
 USAGE
-  $ wordup deploy
+  $ wordup cloud:clone
 
 OPTIONS
-  -n, --name=name  name to print
+  -s, --server=server  (required) Name of the server/vm or cluster
 
 DESCRIPTION
   ...
-  Extra documentation goes here
+  Automatically backups and uploads your running WordPress installation to wordup.
+  After cloning the project, your data will be deleted from our servers. 
+  Please be aware that you need to setup a VM or cluster in your wordup account.
 ```
 
-_See code: [src/commands/deploy.js](https://github.com/wordup-dev/wordup-cli/blob/v0.7.2/src/commands/deploy.js)_
+_See code: [src/commands/cloud/clone.js](https://github.com/wordup-dev/wordup-cli/blob/v0.7.2/src/commands/cloud/clone.js)_
 
 ## `wordup export TYPE`
 
@@ -156,7 +158,7 @@ OPTIONS
   --all  see all commands in CLI
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.0/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.1/src/commands/help.ts)_
 
 ## `wordup init`
 
@@ -195,13 +197,10 @@ OPTIONS
   --logs                     Shows all stdout logs of this process
   --private-key=private-key  Private key for the wordup-connect plugin
   --prompt                   If you want to do the setup again
-  --siteurl=siteurl          Specify a custom WordPress site url. Use --help for details.
 
 DESCRIPTION
   ...
   If there is no wpInstall config in .wordup/config.yml, a setup for your installation will be shown.
-  You can set a custom site url for WordPress, but please be aware that you have to proxy this url to your 
-  localhost:port
 
   The web frontend for the catched emails (MailHog) is available on localhost:[WORDPRESS_PORT + 1]
 
@@ -268,8 +267,7 @@ USAGE
   $ wordup start
 
 OPTIONS
-  -p, --port=port  Overwrite installed port
-  --logs           Shows all stdout logs of this process
+  --logs  Shows all stdout logs of this process
 
 DESCRIPTION
   ...

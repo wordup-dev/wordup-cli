@@ -8,7 +8,6 @@ const utils =  require('../lib/utils')
 class StartCommand extends Command {
   async run() {
     const {flags} = this.parse(StartCommand)
-    const forceStart = flags.force
 
     const project = this.wordupProject
 
@@ -25,8 +24,7 @@ class StartCommand extends Command {
       this.exit(4)
     }
 
-    const port = flags.port ? flags.port : project.assignNewPort(project.config.installedOnPort)
-    project.prepareDockerComposeUp(port)
+    project.prepareDockerComposeUp()
 
     await this.customLogs('Start wordup', (resolve, reject, showLogs) => {
       shell.exec('docker-compose --project-directory ' + project.getProjectPath() + ' up -d', {silent: !showLogs}, function (code, _stdout, _stderr) {
@@ -38,17 +36,23 @@ class StartCommand extends Command {
       })
     })
 
+    // ----- Check if server is accessible ----
+    const port = project.config.installedOnPort
+    const siteUrl = 'http://localhost:' + port
+
+    await this.customLogs('Waiting for the containers to initialize', (resolve, reject, showLogs) => {
+      project.checkLiveliness(siteUrl).then(res => resolve(res)).catch(e => reject(e))
+    })
+
     this.log('')
     this.log('"'+project.wPkg('projectName') + '" successfully started.')
 
-    //Print the urls and credentials
-    utils.printDevServerInfos(this.log, port, shell.env.WORDUP_MAIL_PORT, project)
-
-    const siteUrl = (project.config.customSiteUrl ? project.config.customSiteUrl : 'http://localhost:' + port)
-    await open(siteUrl, {wait: false})
     project.setProjectConf('listeningOnPort', port)
 
-
+    //Print the urls and credentials
+    utils.printDevServerInfos(this.log, port, project)
+    await open(siteUrl, {wait: false})
+    
   }
 }
 
@@ -61,8 +65,6 @@ You can run only this command if your development stack is installed.
 
 StartCommand.flags = {
   ...Command.flags,
-  port: flags.string({char: 'p', description: 'Overwrite installed port'}),
-  force: flags.boolean({char: 'f', description: 'Force the start of the project (deprecated)', hidden:true}),
 }
 
 module.exports = StartCommand

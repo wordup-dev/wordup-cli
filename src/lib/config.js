@@ -24,6 +24,11 @@ class Config {
   }
 
   get(key) {
+    const envKeys = ['api_url', 'app_url'];
+    if(envKeys.includes(key) && process.env.hasOwnProperty('WORDUP_'+key.toUpperCase())){
+      return process.env['WORDUP_'+key.toUpperCase()]
+    }
+
     const config = this.getConfig()
     return dotProp.get(config, key)
   }

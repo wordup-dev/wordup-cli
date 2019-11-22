@@ -15,12 +15,12 @@ class WpcliCommand extends Command {
       this.exit(4)
     }
 
-    this.wordupProject.prepareDockerComposeUp(this.wordupProject.config.listeningOnPort)
+    this.wordupProject.prepareDockerComposeUp()
 
     const wpCliCmd = argv.join(' ')
 
     this.log('Run command: wp ' + wpCliCmd)
-    shell.exec('docker-compose --project-directory ' + this.wordupProject.getProjectPath() + ' run --rm  --no-deps wordpress-cli ' + wpCliCmd)
+    shell.exec('docker-compose --project-directory ' + this.wordupProject.getProjectPath() + ' exec -T wordpress sudo -u daemon wp ' + wpCliCmd)
 
   }
 }
