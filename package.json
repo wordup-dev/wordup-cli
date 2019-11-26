@@ -1,7 +1,7 @@
 {
   "name": "wordup-cli",
   "description": "Development toolkit for setting up and managing your local WordPress Theme/Plugin",
-  "version": "0.7.2",
+  "version": "1.0.0-alpha.0",
   "bin": {
     "wordup": "./bin/run"
   },
@@ -77,7 +77,10 @@
       "@oclif/plugin-help"
     ],
     "topics": {
-      "cloud": {"hidden": true,  "description": "All commands which require a wordup account" }
+      "cloud": {
+        "hidden": true,
+        "description": "All commands which require a wordup account"
+      }
     }
   },
   "scripts": {
