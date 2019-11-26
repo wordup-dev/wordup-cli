@@ -15,7 +15,9 @@ else
    sudo -u daemon wp plugin delete --all
 fi
 
-sudo -u daemon wp plugin install https://wordup-test.appspot.com/release_dl/wordup-connect/0.2.0/wordup-connect.zip --activate
+sudo -u daemon wp plugin install https://storage.googleapis.com/wordup-static/wordup-connect-0.2.0.zip --activate
+
+sudo echo 'opcache.enable = 0' >> /opt/bitnami/php/etc/php.ini
 
 echo "Init wordup project specific settings..."
 
