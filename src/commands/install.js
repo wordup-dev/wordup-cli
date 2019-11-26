@@ -297,7 +297,10 @@ class InstallCommand extends Command {
   async downloadArchive(url, tarballName) {  
     const axios = require('axios')
 
-    const tarballPathAbs = this.wordupProject.getProjectPath(this.wordupProject.wPkg('distFolder', 'dist'), tarballName)
+    const distPath = this.wordupProject.getProjectPath(this.wordupProject.wPkg('distFolder', 'dist'))
+    fs.ensureDirSync(distPath)
+    
+    const tarballPathAbs = path.join(distPath, tarballName)
     const writer = fs.createWriteStream(tarballPathAbs)
   
     const response = await axios.get(url, {
