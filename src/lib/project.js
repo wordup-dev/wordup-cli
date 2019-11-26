@@ -383,6 +383,8 @@ class Project {
 
     if(!port) port = 8000
 
+    const projectTitle = this.wPkg('slugName')
+
     const file = fs.readFileSync( this.wordupDockerPath('docker-compose.dev.yml') , 'utf8')
 
     let dockerComposeSettings = YAML.parse(file)
@@ -406,18 +408,23 @@ class Project {
 
     //Set labels 
     let labels = dockerComposeSettings.services.wordpress.labels
-    labels.push('wordup.dev.project='+this.wPkg('slugName'))
+    labels.push('wordup.dev.project='+projectTitle)
     dockerComposeSettings.services.wordpress.labels = labels
 
     // Set settings 
     let env = dockerComposeSettings.services.wordpress.environment 
-    env.push('WORDPRESS_BLOG_NAME='+this.wPkg('wpInstall.title'))
+    env.push('WORDPRESS_BLOG_NAME='+this.wPkg('wpInstall.title', projectTitle))
    
-    const admin = this.wPkg('wpInstall.users')[0]
-    env.push('WORDPRESS_USERNAME='+admin.name)
-    env.push('WORDPRESS_PASSWORD='+admin.password)
-    env.push('WORDPRESS_EMAIL='+admin.email)
-    env.push('WORDUP_PROJECT='+this.wPkg('slugName'))
+    const users = this.wPkg('wpInstall.users')
+    if(users && typeof users === 'object'){
+      const admin = users[0]
+      env.push('WORDPRESS_USERNAME='+admin.name)
+      env.push('WORDPRESS_PASSWORD='+admin.password)
+      env.push('WORDPRESS_EMAIL='+admin.email)
+    }else{
+      //2do: Default Values
+    }
+    env.push('WORDUP_PROJECT='+projectTitle)
     env.push('WORDUP_PROJECT_TYPE='+this.wPkg('type'))
 
     //Set mailhog port

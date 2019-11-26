@@ -330,7 +330,7 @@ InstallCommand.flags = {
   ...Command.flags,
   port: flags.string({char: 'p', description: 'Install on a different port', default:'8000'}),
   prompt: flags.boolean({description: 'If you want to do the setup again', exclusive: ['archive','connect']}),
-  archive: flags.string({description: 'Install from a wordup archive.'}),
+  archive: flags.string({description: 'Install from a wordup archive (needs to be located in your dist folder).'}),
   connect: flags.string({description: 'Install from a WordPress running website.', exclusive: ['archive']}),
   'private-key': flags.string({description: 'Private key for the wordup-connect plugin', exclusive: ['archive'], dependsOn: ['connect']}),
 }
