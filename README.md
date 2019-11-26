@@ -89,7 +89,6 @@ USAGE
 <!-- usagestop -->
 # Commands
 <!-- commands -->
-* [`wordup cloud:clone`](#wordup-cloudclone)
 * [`wordup export TYPE`](#wordup-export-type)
 * [`wordup help [COMMAND]`](#wordup-help-command)
 * [`wordup init`](#wordup-init)
@@ -99,26 +98,6 @@ USAGE
 * [`wordup start`](#wordup-start)
 * [`wordup stop`](#wordup-stop)
 * [`wordup wpcli COMMAND`](#wordup-wpcli-command)
-
-## `wordup cloud:clone`
-
-Clone current running WordPress installation to a server/cluster of your wordup account
-
-```
-USAGE
-  $ wordup cloud:clone
-
-OPTIONS
-  -s, --server=server  (required) Name of the server/vm or cluster
-
-DESCRIPTION
-  ...
-  Automatically backups and uploads your running WordPress installation to wordup.
-  After cloning the project, your data will be deleted from our servers. 
-  Please be aware that you need to setup a VM or cluster in your wordup account.
-```
-
-_See code: [src/commands/cloud/clone.js](https://github.com/wordup-dev/wordup-cli/blob/v0.7.2/src/commands/cloud/clone.js)_
 
 ## `wordup export TYPE`
 
