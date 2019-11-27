@@ -45,27 +45,6 @@ class Project {
 
   setUp() {
 
-    // This is necessary to prevent file permission issues on LINUX with docker
-    // Not working if uid exists in container. This is stil an issue
-    // Kudos: https://jtreminio.com/blog/running-docker-containers-as-current-host-user/
-    let buildDocker = process.env.WORDUP_BUILD_CONTAINER === 'true';
-    if(!buildDocker && this.oclifConfig.platform === 'linux'){
-      // If the current user is not root
-      if (process.getuid && process.getuid() !== 0 && process.getuid() > 1){
-        this.log('INFO: You are running this command on linux with a different host uid than we use in the containers:')
-        this.log('Some wordup functions could not be working correctly')
-        this.log('Try to run the commands with: "sudo -u $(id -nu 1) wordup ..."')
-        this.log('')
-      }
-    }
-
-    if(buildDocker){
-
-      shell.env.WORDUP_DOCKERFILE_WP_PATH = this.wordupDockerPath('wp') 
-      shell.env.WORDUP_DOCKERFILE_WPCLI_PATH = this.wordupDockerPath('wp-cli') 
-
-    }
-
     if (fs.existsSync(this.getProjectPath('.wordup','config.yml'))) {
 
       try {
@@ -335,6 +314,7 @@ class Project {
 
   prepareDockerComposeUp(port){
 
+    // Check if docker-compose is installed
     if (!shell.which('docker-compose')) {
       this.log('This CLI requires ' + chalk.bgBlue('docker-compose') + '. Please download: https://www.docker.com/get-started')
       this.log('If you dont want to signup for downloading Docker Desktop')
@@ -348,10 +328,21 @@ class Project {
     }
 
 
+    // This is necessary to prevent file permission issues on LINUX with docker
+    // Not working if uid exists in container. This is stil an issue
+    // Kudos: https://jtreminio.com/blog/running-docker-containers-as-current-host-user/
+    if(this.oclifConfig.platform === 'linux'){
+      // If the current user is not root
+      if (process.getuid && process.getuid() !== 1){
+        this.log('INFO: You are running this command on linux with a different host uid than we use in the containers:')
+        this.log('Some wordup functions could not be working correctly')
+        this.log('Make sure to allow r+w permissions for uid == 1 for the ./dist and the ./src folder')
+        //this.log('Try to run the commands with: "sudo -u $(id -nu 1) wordup ..."')
+        this.log('')
+      }
+    }
+
     shell.env.COMPOSE_PROJECT_NAME = this.wPkg('slugName')
-    //shell.env.WORDUP_PROJECT = this.wPkg('slugName')
-    //shell.env.WORDUP_PORT = port
-    //shell.env.WORDUP_MAIL_PORT = parseInt(port,10) + 1
 
     //This is a hack to prevent file permission issues in bind mount volumes in docker-compose 
     const srcFolder = this.getProjectPath(this.wPkg('srcFolder', 'src'))
@@ -359,6 +350,9 @@ class Project {
     if (!fs.existsSync(srcFolder)) fs.mkdirSync(srcFolder)
     if (!fs.existsSync(distFolder)) fs.mkdirSync(distFolder)
 
+    //2do: optional 
+    //fs.chmodSync(srcFolder,  parseInt('0777', 8))
+    //fs.chmodSync(distFolder,  parseInt('0777', 8))
 
     //Set project specific docker-compose file
     const seperator = (this.oclifConfig.platform === 'win32') ? ';' : ':'
@@ -384,6 +378,7 @@ class Project {
     if(!port) port = 8000
 
     const projectTitle = this.wPkg('slugName')
+    const isCloudNode = process.env.WORDUP_CLOUD_NODE || false
 
     const file = fs.readFileSync( this.wordupDockerPath('docker-compose.dev.yml') , 'utf8')
 
@@ -397,7 +392,8 @@ class Project {
     wpVolumes.push(this.getProjectConfigPath('wordup.sh')+':/docker-entrypoint-init.d/wordup.sh')
 
     if(this.wPkg('type') === 'installation'){
-      wpVolumes.push('./'+this.wPkg('srcFolder', 'src')+':/bitnami/wordpress/wp-content')
+      // In cloud node, don't mount volume
+      if(isCloudNode) wpVolumes.push('./'+this.wPkg('srcFolder', 'src')+':/bitnami/wordpress/wp-content')
     }else{
       wpVolumes.push('./'+this.wPkg('srcFolder', 'src')+':/bitnami/wordpress/wp-content/'+this.wPkg('type')+'/'+this.wPkg('slugName'))
     }
@@ -414,7 +410,12 @@ class Project {
     // Set settings 
     let env = dockerComposeSettings.services.wordpress.environment 
     env.push('WORDPRESS_BLOG_NAME='+this.wPkg('wpInstall.title', projectTitle))
-   
+
+    if(isCloudNode){
+      env.push('WORDPRESS_SCHEME=https')
+    }
+
+    // Users
     const users = this.wPkg('wpInstall.users')
     if(users && typeof users === 'object'){
       const admin = users[0]
@@ -426,6 +427,7 @@ class Project {
     }
     env.push('WORDUP_PROJECT='+projectTitle)
     env.push('WORDUP_PROJECT_TYPE='+this.wPkg('type'))
+    env.push('WORDUP_CLOUD_NODE='+ isCloudNode ? 'yes' : 'no')
 
     //Set mailhog port
     dockerComposeSettings.services.mail.ports = [ (parseInt(port,10) + 1)+':8025']
