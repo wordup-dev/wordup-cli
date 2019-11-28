@@ -108,7 +108,7 @@ class InstallCommand extends Command {
     this.createWordupScript(wordupArchive)
     //Prepare docker-compose specific settings
     project.prepareDockerComposeUp(flags.port)
-    
+
     // ------- Install docker containers -----
     await this.customLogs('Installing wordup project and booting docker containers (can take some minutes)', (resolve, reject, showLogs) => {
       shell.exec('docker-compose --project-directory ' + project.getProjectPath() + ' up -d --build',{silent: !showLogs}, function (code, _stdout, _stderr) {
@@ -177,6 +177,7 @@ class InstallCommand extends Command {
       stream.write('sudo tar -xvf /wordup/dist/'+initFromArchiveJson.path+' -C /bitnami/wordpress '+excludeSrc+' --strip=1 --skip-old-files'+'\n')
       stream.write('sudo -u daemon wp db import /bitnami/wordpress/sql_dump.sql'+'\n')
       stream.write('sudo rm /bitnami/wordpress/sql_dump.sql /bitnami/wordpress/info.json'+'\n')
+      stream.write('sudo chown -R daemon:daemon /bitnami/wordpress/wp-content'+'\n')
 
       stream.end()
       return

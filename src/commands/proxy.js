@@ -3,6 +3,7 @@ const shell = require('shelljs')
 const chalk = require('chalk')
 const url = require('url')
 const fs = require('fs-extra')
+const path = require('path')
 
 const Command =  require('../command-base')
 const utils =  require('../lib/utils')
@@ -41,34 +42,69 @@ class ProxyCommand extends Command {
 
     //check if caddy exists 
     if(!shell.which('caddy')){
-      //this.error('Caddy [https://caddyserver.com] needs to be installed on your system')
+      this.error('Caddy [https://caddyserver.com] needs to be installed on your system')
     }
 
     const parsedProxy = url.parse(proxyUrl)
 
-    //Set caddyfile
-    const caddyfileConf = project.getProjectConfigPath('Caddyfile')
-    fs.writeFileSync(caddyfileConf, caddyFile(project.config.listeningOnPort, parsedProxy.hostname, parsedProxy.host, flags.email))
-    
     if(flags.service){
 
-      if(shell.exec('caddy -service install -agree -conf '+caddyfileConf+' -name '+project.wPkg('slugName')).code !== 0){
-        this.error('Could not install caddy service')
+      const caddyfile = path.join(this.config.configDir, 'Caddyfile')
+      if(fs.existsSync(caddyfile)){
+        project.setProjectConf('proxy', proxyUrl)
+
+        // Regenerate the caddyfile based on all running proxies
+        const allProxiesConfig =  this.createCaddyFile(flags.email)
+        fs.writeFileSync(caddyfile, allProxiesConfig)
+
+        if(shell.exec('caddy -service restart').code !== 0){
+          this.error('Could not restart caddy service')
+        }
+
+      }else{
+        const newCaddyFileConf = caddyFile(project.config.listeningOnPort, parsedProxy.hostname, parsedProxy.host, flags.email)
+        fs.writeFileSync(caddyfile, newCaddyFileConf)
+      
+        if(shell.exec('caddy -service install -agree -conf '+caddyfile).code !== 0){
+          this.error('Could not install caddy service')
+        }
+
+        if(shell.exec('caddy -service start -name '+project.wPkg('slugName')).code !== 0){
+          this.error('Could not start caddy service')
+        }
+
+        project.setProjectConf('proxy', proxyUrl)
       }
 
-      if(shell.exec('caddy -service start -name '+project.wPkg('slugName')).code !== 0){
-        this.error('Could not start caddy service')
-      }
-
-      //Only the service command will keep caddy in the background, so we can save the state
-      project.setProjectConf('proxy', 'running')
       this.log('Caddy proxy is running')
 
-    }else if(shell.exec('caddy -agree -conf '+caddyfileConf).code !== 0){
-      this.error('Could not start caddy')
+    }else{
+
+      //Set caddyfile per project
+      const caddyfileConf = project.getProjectConfigPath('Caddyfile')
+      fs.writeFileSync(caddyfileConf, caddyFile(project.config.listeningOnPort, parsedProxy.hostname, parsedProxy.host, flags.email))
+  
+      if(shell.exec('caddy -agree -conf '+caddyfileConf).code !== 0){
+        this.error('Could not start caddy')
+      }
     }
 
   }
+
+  createCaddyFile( email){
+    const projects = this.wordupConfig.get('projects') || []
+    let content = ''
+    Object.keys(projects).forEach(key => {
+      if(projects[key].proxy && projects[key].listeningOnPort){
+        const parsedProxy = url.parse(projects[key].proxy)
+
+        content += caddyFile(projects[key].listeningOnPort, parsedProxy.hostname, parsedProxy.host, email) + '\n'
+      }
+    })
+
+    return content
+  }
+
 }
 
 ProxyCommand.description = `Creates a caddy proxy to your wordup installation

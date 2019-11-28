@@ -427,8 +427,7 @@ class Project {
     }
     env.push('WORDUP_PROJECT='+projectTitle)
     env.push('WORDUP_PROJECT_TYPE='+this.wPkg('type'))
-    env.push('WORDUP_CLOUD_NODE='+ isCloudNode ? 'yes' : 'no')
-
+    env.push('WORDUP_CLOUD_NODE='+ (isCloudNode ? 'yes' : 'no'))
     //Set mailhog port
     dockerComposeSettings.services.mail.ports = [ (parseInt(port,10) + 1)+':8025']
 
