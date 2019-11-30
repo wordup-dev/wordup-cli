@@ -1,6 +1,7 @@
 const Command =  require('../command-base')
 const shell = require('shelljs')
 const chalk = require('chalk')
+const utils =  require('../lib/utils')
 
 class WpcliCommand extends Command {
   async run() {
@@ -16,8 +17,17 @@ class WpcliCommand extends Command {
     }
 
     this.wordupProject.prepareDockerComposeUp()
+    
+    let escapedArgs = []
+    argv.forEach(arg => {
+      if(utils.isValidUrl(arg)){
+        escapedArgs.push('"'+arg+'"')
+      }else{
+        escapedArgs.push(arg)
+      }
+    })
 
-    const wpCliCmd = argv.join(' ')
+    const wpCliCmd = escapedArgs.join(' ')
 
     this.log('Run command: wp ' + wpCliCmd)
     shell.exec('docker-compose --project-directory ' + this.wordupProject.getProjectPath() + ' exec -T wordpress sudo -u daemon wp ' + wpCliCmd)

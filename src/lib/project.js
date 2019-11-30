@@ -393,7 +393,7 @@ class Project {
 
     if(this.wPkg('type') === 'installation'){
       // In cloud node, don't mount volume
-      if(isCloudNode) wpVolumes.push('./'+this.wPkg('srcFolder', 'src')+':/bitnami/wordpress/wp-content')
+      if(!isCloudNode) wpVolumes.push('./'+this.wPkg('srcFolder', 'src')+':/bitnami/wordpress/wp-content')
     }else{
       wpVolumes.push('./'+this.wPkg('srcFolder', 'src')+':/bitnami/wordpress/wp-content/'+this.wPkg('type')+'/'+this.wPkg('slugName'))
     }
