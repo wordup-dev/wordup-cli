@@ -183,6 +183,10 @@ class InstallCommand extends Command {
       return
     }
 
+    // ----- Debug -------
+    stream.write('sudo echo "display_errors = On" >> /opt/bitnami/php/conf/php.ini\n')
+    stream.write('sudo wp config set WP_DEBUG true --raw --allow-root\n')
+
 
     // ----- Custom language ----
     const lang = this.wordupProject.wPkg('wpInstall.language', 'en_US')

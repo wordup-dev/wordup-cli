@@ -15,8 +15,10 @@ class StopCommand extends Command {
     const wordupConfig = this.wordupConfig
     const configdir = this.config.configDir
 
-
-    if (projectName) {
+    if(flags.force){
+      // Use the template 
+      shell.env.COMPOSE_FILE = this.wordupProject.wordupDockerPath('docker-compose.dev.yml')
+    }else if (projectName) {
       // Different project -> find project id
       projectId = false
       const projects = wordupConfig.get('projects')
@@ -47,7 +49,7 @@ class StopCommand extends Command {
     shell.env.COMPOSE_PROJECT_NAME = projectName
 
     await this.customLogs('Stop '+(deleteAll ? '& delete ' : '')+'local servers', (resolve, reject, showLogs) => {
-      shell.exec('docker-compose down' + (deleteAll ? ' -v' : ''), {silent: !showLogs}, function (code, _stdout, _stderr) {
+      shell.exec('docker-compose down' + (deleteAll ? ' -v --remove-orphans' : ''), {silent: !showLogs}, function (code, _stdout, _stderr) {
         if (code === 0 && wordupConfig.get('projects.' + projectId)) {
           wordupConfig.set('projects.' + projectId + '.listeningOnPort', false)
           if (deleteAll) {
@@ -55,7 +57,9 @@ class StopCommand extends Command {
             wordupConfig.remove('projects.' + projectId + '.proxy')
 
             // Delete project config
-            fs.removeSync(path.join(configdir, projectName))
+            if(projectName){
+              fs.removeSync(path.join(configdir, projectName))
+            }
           }
         }
         resolve({done: (code === 0 ? '✔' : 'Oops, something went wrong'), code:code})
@@ -72,6 +76,7 @@ Optionally you can use -d to delete the whole installation, this includes all fi
 StopCommand.flags = {
   ...Command.flags,
   project: flags.string({char: 'p', description: 'A project slug name'}),
+  force: flags.boolean({ description: 'Force delete'}),
   delete: flags.boolean({char: 'd', description: 'Deletes all attached volumes/data (WARNING: Your content in your WordPress installation will be deleted)'}),
 }
 

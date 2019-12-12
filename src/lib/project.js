@@ -5,7 +5,6 @@ const chalk = require('chalk')
 const crypto = require('crypto')
 const dotProp = require('dot-prop')
 const YAML = require('yaml')
-const axios = require('axios')
 const tcpPortUsed = require('tcp-port-used')
 
 const Config  = require('./config')
@@ -428,8 +427,15 @@ class Project {
     env.push('WORDUP_PROJECT='+projectTitle)
     env.push('WORDUP_PROJECT_TYPE='+this.wPkg('type'))
     env.push('WORDUP_CLOUD_NODE='+ (isCloudNode ? 'yes' : 'no'))
+    
     //Set mailhog port
     dockerComposeSettings.services.mail.ports = [ (parseInt(port,10) + 1)+':8025']
+
+    // Custom Table prefix
+    const tablePrefix = this.wPkg('wpInstall.tablePrefix')
+    if(tablePrefix){
+      env.push('WORDPRESS_TABLE_PREFIX='+tablePrefix)
+    }
 
     const projectDockerComposeFile = this.getProjectConfigPath('docker-compose.yml')
 
@@ -468,12 +474,10 @@ class Project {
       const check = () => {
         setTimeout(() => {
           tries++;
-          axios.get(url).then((response) => {
-            // handle success
-            resolve({done: '✔', code:0})
-          }).catch((error) => {
-            // handle error
-            if (tries < 100) {
+          shell.exec('docker-compose --project-directory ' + this.getProjectPath() + ' exec -T wordpress curl -sI http://localhost:80',{silent: true}, function (code, _stdout, _stderr) {
+            if(code === 0){
+              resolve({done: '✔', code:0})
+            }else if (tries < 150) {
               check()
             }else{
               reject({done: 'The WordPress docker container is not running (timeout)', code:1})

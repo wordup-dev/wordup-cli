@@ -1,7 +1,7 @@
 version: '3.7'
 
 services:
-  mariadb:
+  db:
     image: 'bitnami/mariadb:10.3'
     restart: always
     labels:
@@ -23,10 +23,10 @@ services:
     labels:
       - 'wordup.dev'
     depends_on:
-      - mariadb
+      - db
       - mail
     environment:
-      - MARIADB_HOST=mariadb
+      - MARIADB_HOST=db
       - MARIADB_PORT_NUMBER=3306
       - WORDPRESS_DATABASE_USER=bn_wordpress
       - WORDPRESS_DATABASE_NAME=bitnami_wordpress
