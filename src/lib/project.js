@@ -384,7 +384,7 @@ class Project {
     let dockerComposeSettings = YAML.parse(file)
 
     // Set port
-    dockerComposeSettings.services.wordpress.ports = [port+':80']
+    dockerComposeSettings.services.wordpress.ports = [port+':8080']
 
     // Set volumes
     let wpVolumes = dockerComposeSettings.services.wordpress.volumes
@@ -474,7 +474,7 @@ class Project {
       const check = () => {
         setTimeout(() => {
           tries++;
-          shell.exec('docker-compose --project-directory ' + this.getProjectPath() + ' exec -T wordpress curl -sI http://localhost:80',{silent: true}, function (code, _stdout, _stderr) {
+          shell.exec('docker-compose --project-directory ' + this.getProjectPath() + ' exec -T wordpress curl -sI http://localhost:8080',{silent: true}, function (code, _stdout, _stderr) {
             if(code === 0){
               resolve({done: '✔', code:0})
             }else if (tries < 150) {

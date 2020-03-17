@@ -2,7 +2,7 @@ const open = require('open')
 const axios = require('axios')
 const express = require('express')
 
-const CLIENT_ID = 'qC4eDwvJEx0nICGCRIbh2HRiH6FStmuGzFmruEmt'
+const CLIENT_ID = 'Gjp9nyFXkuRc2FuLUWeUxsI6GOzAnprlDmAfg9fF'
 const RANDOM_STATE = ''
 
 class OAuth {
@@ -57,7 +57,8 @@ class OAuth {
 
     app.get('/verified', (req, res) => {
       res.send('Successful verified')
-
+      console.log('Successful verified')
+      
       process.exit()
     })
 

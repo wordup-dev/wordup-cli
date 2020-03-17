@@ -46,7 +46,7 @@ class AuthCommand extends Command {
 
 AuthCommand.description = `Authenticate the CLI with your wordup account
 ...
-This feature is currently not active
+You will be redirect to the wordup.dev page.
 `
 
 AuthCommand.flags = {

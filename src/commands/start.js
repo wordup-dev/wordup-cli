@@ -44,6 +44,18 @@ class StartCommand extends Command {
       project.checkLiveliness(siteUrl).then(res => resolve(res)).catch(e => reject(e))
     })
 
+
+    // ------ Exec startup script -----
+    await this.customLogs('Execute startup script', (resolve, reject, showLogs) => {
+      shell.exec("docker-compose --project-directory " + project.getProjectPath() + " exec -T wordpress sudo bash /docker-entrypoint-init.d/wordup.sh start", {silent: !showLogs}, function (code, _stdout, _stderr) {
+        if (code === 0) {
+          resolve({done: '✔', code: code})
+        } else {
+          reject({done: 'There was an error while executing the startup script.', code: code})
+        }
+      })
+    })
+
     this.log('')
     this.log('"'+project.wPkg('projectName') + '" successfully started.')
 

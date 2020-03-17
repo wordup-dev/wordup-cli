@@ -37,6 +37,9 @@ class WordupAPI {
             message = message + field.toUpperCase() +':\n' + errorMsgs[field].join('\n')
           })
         }
+      }else if(error.response.status === 429){
+        const errorMsgs = error.response.data
+        message = errorMsgs.detail || 'Rate limiting exceeded'
       }else if(error.response.status){
         message = 'The request to the wordup API ended with a status code of '+error.response.status
       }
@@ -49,12 +52,16 @@ class WordupAPI {
     return this.api.get('/user/')
   } 
 
-  projectAccessToken(projectId){
+  createProjectAccessToken(projectId){
     return this.api.post('/project_tokens/', {project:projectId, type:'custom'})
   } 
+  
+  createProject(project){
+    return this.api.post('/projects/', project)
+  } 
 
-  wpNodeSetup(server, settings){
-    return this.api.post('/wp_nodes/upload_setup/', {server:server, settings:settings})
+  setupWPNode(server, settings){
+    return this.api.post('/wp_nodes/upload_setup/', {server:null, environment:'test', settings:settings})
   } 
   
 }

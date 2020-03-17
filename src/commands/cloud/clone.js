@@ -1,15 +1,18 @@
 const {flags} = require('@oclif/command')
 const fs = require('fs-extra')
 const axios = require('axios')
+const {cli} = require('cli-ux')
 
 const Command =  require('../../command-base')
 const WordupAPI =  require('../../lib/api')
 const Backup =  require('../../lib/backup')
 
+const MAX_UPLOAD_SIZE_IN_BYTES = (1024*1024*250) //250MB
+
 class CloneCommand extends Command {
   async run() {
     const {flags} = this.parse(CloneCommand)
-    const server = flags.server
+    const server = flags.server || null
 
     const project = this.wordupProject
 
@@ -25,7 +28,7 @@ class CloneCommand extends Command {
     //Check if user is authenticated
     this.userToken = this.getUserAuthToken()
     if(!this.userToken){
-      this.log('Please authenticate first with: wordup auth')
+      this.log('Please authenticate first with: wordup cloud:auth')
       this.exit(2)
     }
     this.api = new WordupAPI(this.wordupConfig)
@@ -33,7 +36,7 @@ class CloneCommand extends Command {
     //Get upload url
     let apiResp =  null;
     try {
-      apiResp = await this.api.wpNodeSetup(server,{})
+      apiResp = await this.api.setupWPNode(server,{})
     }catch(e){      
       this.error(e.message)
     }
@@ -41,21 +44,25 @@ class CloneCommand extends Command {
     const uploadUrl = apiResp.data.upload_url
 
     // Create backup
+    cli.action.start('Create WordPress backup from project')
+
     const distPath = project.getProjectPath(project.wPkg('distFolder','dist'))
     const backup = new Backup(project)
     try {
       await backup.createInstallation(distPath, true)
+      cli.action.stop()
+
     }catch(e){
+      cli.action.stop('Error')
       this.error(e)
+
     }
 
-    await this.customLogs('Uploading backup', (resolve, reject, showLogs) => {
-      this.uploadArchive(backup.backupFile, uploadUrl).then(res => {
-        resolve({done: '✔', code:0})
-      }).catch(e => reject({done: 'Error while uploading', code:e.message}))
+    // Upload the backup
+    this.uploadArchive(backup.backupFile, uploadUrl).then(res => {
+      this.log('')
+      this.log('The WordPress installation will be created now, this can take up to 5 minutes. Please check the status in the app')
     })
-
-    this.log('The WordPress installation will be created now, this can take up to 5 minutes. Please check the status in the app')
 
   }
 
@@ -66,17 +73,39 @@ class CloneCommand extends Command {
     const data = fs.createReadStream(archivePath)
     const stat = fs.statSync(archivePath)
 
+
+    //Check for max file size
+    if(stat.size > MAX_UPLOAD_SIZE_IN_BYTES){
+      this.error('Your project size reached the limit of '+MAX_UPLOAD_SIZE_IN_BYTES/1024/1024+'MB')
+    }
+
     const options = {
+        maxContentLength:Infinity,
+        maxBodyLength:Infinity,
         headers: {
             'Content-Type': "application/gzip",
-            'Content-Length': stat.size
+            'Content-Length': stat.size,
+            'x-goog-content-length-range':'0,'+MAX_UPLOAD_SIZE_IN_BYTES
         }
     }
 
+    cli.action.start('Upload WordPress backup')
+
     return axios.put(uploadUrl, data, options).then(res => {
+        cli.action.stop() 
+
         if(res.status === 200){
             return true
         }
+    }).catch(error => {
+      cli.action.stop('Error')
+
+      if(!error.response){
+        return this.error(error.message)
+      }else{
+        return this.error('Unknown error')
+      }
+
     })
 
   }
@@ -93,7 +122,7 @@ Please be aware that you need to setup a VM or cluster in your wordup account.
 `
 
 CloneCommand.flags = {
-  server: flags.string({char: 's', required:true, description: 'Name of the server/vm or cluster'}),
+  //server: flags.string({char: 's', required:false, description: 'Name of the server/vm or cluster'}),
 }
 
 CloneCommand.hidden = true

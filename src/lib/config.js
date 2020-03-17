@@ -2,6 +2,11 @@ const fs = require('fs-extra')
 const path = require('path')
 const dotProp = require('dot-prop')
 
+const WORDUP_CONFIG = {
+  'api_url':'https://api.wordup.dev',
+  'app_url':'https://console.wordup.dev',
+}
+
 class Config {
   constructor(configDir) {
     this.configDir = configDir
@@ -24,9 +29,13 @@ class Config {
   }
 
   get(key) {
-    const envKeys = ['api_url', 'app_url'];
-    if(envKeys.includes(key) && process.env.hasOwnProperty('WORDUP_'+key.toUpperCase())){
-      return process.env['WORDUP_'+key.toUpperCase()]
+    const envKeys = ['api_url', 'app_url']
+    if(envKeys.includes(key)){
+      if(process.env.hasOwnProperty('WORDUP_'+key.toUpperCase())){
+        return process.env['WORDUP_'+key.toUpperCase()]
+      }else{
+        return WORDUP_CONFIG[key]
+      }
     }
 
     const config = this.getConfig()

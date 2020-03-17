@@ -110,6 +110,11 @@ class InstallCommand extends Command {
     project.prepareDockerComposeUp(flags.port)
 
     // ------- Install docker containers -----
+    if(this.config.platform === 'win32'){
+      this.log('INFO: You are using Windows. The installation process lasts up to 10 minutes. Please be patient.')
+      this.log()
+    }
+
     await this.customLogs('Installing wordup project and booting docker containers (can take some minutes)', (resolve, reject, showLogs) => {
       shell.exec('docker-compose --project-directory ' + project.getProjectPath() + ' up -d --build',{silent: !showLogs}, function (code, _stdout, _stderr) {
         if (code === 0) {
@@ -160,66 +165,66 @@ class InstallCommand extends Command {
     const plugins = this.wordupProject.wPkg('wpInstall.plugins', {})
     const themes = this.wordupProject.wPkg('wpInstall.themes', {})
 
-    let stream = fs.createWriteStream(customShellScript, {flags: 'a'})
+    let customScripts = []
 
     // Create skript for installation archive only
     if(initFromArchiveJson){
       let excludeSrc = ''
 
-      stream.write('if [ $(sudo -u daemon wp core version) != "'+initFromArchiveJson.wp_version+'" ]; then sudo -u daemon wp core update --force --version='+initFromArchiveJson.wp_version+'; fi'+'\n')
+      customScripts.push('if [ $(sudo -u daemon wp core version) != "'+initFromArchiveJson.wp_version+'" ]; then sudo -u daemon wp core update --force --version='+initFromArchiveJson.wp_version+'; fi')
       
       if(projectType === 'installation'){
-        stream.write('sudo rm -rf /bitnami/wordpress/wp-content/*'+'\n')
+        customScripts.push('sudo rm -rf /bitnami/wordpress/wp-content/*')
       }else{
         excludeSrc = '--exclude="backup/wp-content/'+projectType+'/'+this.wordupProject.wPkg('slugName')+'/*"'
       }
 
-      stream.write('sudo tar -xvf /wordup/dist/'+initFromArchiveJson.path+' -C /bitnami/wordpress '+excludeSrc+' --strip=1 --skip-old-files'+'\n')
-      stream.write('sudo -u daemon wp db import /bitnami/wordpress/sql_dump.sql'+'\n')
-      stream.write('sudo rm /bitnami/wordpress/sql_dump.sql /bitnami/wordpress/info.json'+'\n')
-      stream.write('sudo chown -R daemon:daemon /bitnami/wordpress/wp-content'+'\n')
+      customScripts.push('sudo tar -xvf /wordup/dist/'+initFromArchiveJson.path+' -C /bitnami/wordpress '+excludeSrc+' --strip=1 --skip-old-files')
+      customScripts.push('sudo -u daemon wp db import /bitnami/wordpress/sql_dump.sql')
+      customScripts.push('sudo rm /bitnami/wordpress/sql_dump.sql /bitnami/wordpress/info.json')
+      customScripts.push('sudo chown -R daemon:daemon /bitnami/wordpress/wp-content')
 
       stream.end()
       return
     }
 
     // ----- Debug -------
-    stream.write('sudo echo "display_errors = On" >> /opt/bitnami/php/conf/php.ini\n')
-    stream.write('sudo wp config set WP_DEBUG true --raw --allow-root\n')
+    customScripts.push('sudo echo "display_errors = On" >> /opt/bitnami/php/conf/php.ini')
+    customScripts.push('sudo wp config set WP_DEBUG true --raw --allow-root')
 
 
     // ----- Custom language ----
     const lang = this.wordupProject.wPkg('wpInstall.language', 'en_US')
     if(lang !== 'en_US'){
-      stream.write('sudo -u daemon wp language core install '+lang+' --activate'+'\n')
+      customScripts.push('sudo -u daemon wp language core install '+lang+' --activate')
     }
 
     // ----- Custom version ----
     const version = this.wordupProject.wPkg('wpInstall.version', null)
     if(version && version !== 'latest'){
-      stream.write('sudo -u daemon wp core update --force --version='+version+'\n')
+      customScripts.push('sudo -u daemon wp core update --force --version='+version)
     }
 
     // ---- Themes & plugins
     Object.keys(plugins).forEach(value => {
       let version = plugins[value] !== 'latest' ? ' --version='+plugins[value] : ''
-      stream.write('sudo -u daemon wp plugin install '+value+version+'\n')
+      customScripts.push('sudo -u daemon wp plugin install '+value+version)
     })
 
     Object.keys(themes).forEach(value => {
       let version = themes[value] !== 'latest' ? ' --version='+themes[value] : ''
-      stream.write('sudo -u daemon wp theme install '+value+version+'\n')
+      customScripts.push('sudo -u daemon wp theme install '+value+version)
     })
 
     // ------ Roles ------
     const roles = this.wordupProject.wPkg('wpInstall.roles', [])
     roles.forEach(role => {
       let clone_from = role.hasOwnProperty('clone_from') ? ' --clone='+role.clone_from : ''
-      stream.write('sudo -u daemon wp role create '+role.key+' "'+role.name+'"'+clone_from+'\n')
+      customScripts.push('sudo -u daemon wp role create '+role.key+' "'+role.name+'"'+clone_from)
 
       if(role.hasOwnProperty('capabilities') && typeof role.capabilities === 'object'){
         role.capabilities.forEach(cap => {
-          stream.write('sudo -u daemon wp cap add '+role.key+' '+cap+' --quiet'+'\n')
+          customScripts.push('sudo -u daemon wp cap add '+role.key+' '+cap+' --quiet')
         })
       }
 
@@ -229,28 +234,34 @@ class InstallCommand extends Command {
     const users = this.wordupProject.wPkg('wpInstall.users', [])
     users.forEach((user, index) => {
       if(index > 0){
-          stream.write('sudo -u daemon wp user create "'+user.name+'" '+user.email+' --role='+user.role+' --user_pass="'+user.password+'" --quiet'+'\n')
+          customScripts.push('sudo -u daemon wp user create "'+user.name+'" '+user.email+' --role='+user.role+' --user_pass="'+user.password+'" --quiet')
       }
     })
 
     // ------ Media ------
     const mediaPath = this.wordupProject.getProjectPath('.wordup','media')
     if (fs.existsSync(mediaPath)) {
-        stream.write('sudo -u daemon wp media import /wordup/config/media/* --user=1'+'\n')
+        customScripts.push('sudo -u daemon wp media import /wordup/config/media/* --user=1')
     }
 
     // ------ Scaffold ---
     const scaffold = this.wordupProject.getProjectPath(this.wordupProject.wPkg('srcFolder', 'src'), '.scaffold')
     if (fs.existsSync(scaffold)) {
       if(projectType === 'plugins'){
-        stream.write('sudo -u daemon wp scaffold plugin '+this.wordupProject.wPkg('slugName')+'\n')
+        customScripts.push('sudo -u daemon wp scaffold plugin '+this.wordupProject.wPkg('slugName'))
       }else if(projectType === 'themes'){
-        stream.write('sudo -u daemon wp scaffold _s '+this.wordupProject.wPkg('slugName')+'\n')
+        customScripts.push('sudo -u daemon wp scaffold _s '+this.wordupProject.wPkg('slugName'))
       }
       fs.unlinkSync(scaffold)
     }
 
-    stream.end()
+    //Create custom bash script
+    const wordupBash = fs.readFileSync(customShellScript, 'utf8')
+
+    const customWordupBash = wordupBash.replace(/###CUSTOM_SCRIPTS###/g, customScripts.join('\n'));
+    
+    fs.writeFileSync(customShellScript, customWordupBash, 'utf8')
+
   }
 
   async verifyInstallationArchive(tarballPath){
@@ -319,7 +330,6 @@ class InstallCommand extends Command {
       writer.on('error', reject)
     })
   }
-
 
 }
 

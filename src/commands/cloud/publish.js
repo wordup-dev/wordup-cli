@@ -2,6 +2,7 @@ const {flags} = require('@oclif/command')
 const fs = require("fs")
 const path = require("path")
 const axios = require('axios')
+const {cli} = require('cli-ux')
 
 const fglob = require('fast-glob')
 const tar = require("tar")
@@ -10,6 +11,8 @@ const ignore = require('ignore')
 
 const Command =  require('../../command-base')
 const WordupAPI =  require('../../lib/api')
+
+const MAX_UPLOAD_SIZE_IN_BYTES = (1024*1024*100) //100MB
 
 class PublishCommand extends Command {
   async run() {
@@ -108,7 +111,7 @@ class PublishCommand extends Command {
             return reject(new Error('No project slug found in your wordup project config'))
         }
 
-        this.api.projectAccessToken(projectSlug).then((response) => {
+        this.api.createProjectAccessToken(projectSlug).then((response) => {
             resolve(response.data)
         }).catch(error => {
           if(error.response.status === 403){
@@ -157,6 +160,11 @@ class PublishCommand extends Command {
         };
     });
 
+    //Check for max file size
+    if(archiveResult.size > MAX_UPLOAD_SIZE_IN_BYTES){
+        this.error('Your project size reached the limit of '+MAX_UPLOAD_SIZE_IN_BYTES/1024/1024+'MB')
+    }
+
     return await this.uploadArchive(archiveResult)
   }
 
@@ -166,32 +174,42 @@ class PublishCommand extends Command {
     const data = fs.createReadStream(archiveResult.file)
 
     const options = {
+        maxContentLength:Infinity,
+        maxBodyLength:Infinity,
         headers: {
             'Content-Type': "application/gzip",
             'Content-Length': archiveResult.size,
             'x-goog-meta-semver': this.semverIncrement,
-            'x-goog-meta-buildtype':this.publishEnv
+            'x-goog-meta-buildtype':this.publishEnv,
+            'x-goog-content-length-range':'0,'+MAX_UPLOAD_SIZE_IN_BYTES
         }
     }
+
+    cli.action.start('Upload project source data')
+
     return axios.post(api_url+'/projects/'+this.projectSlug+'/build_url/',{semver:this.semverIncrement, build_type:this.publishEnv}, {
         headers:{
             'Authorization': "token " +this.accessToken
         }
     }).then(res => {
         if(res.status === 200){
-            console.log(res.data.upload_url)
+            //console.log(res.data.upload_url)
             return res.data.upload_url
         }
     }).then(url => axios.put(url, data, options)).then(res => {
+        cli.action.stop() 
+
         if(res.status === 200){
             return true
         }
     }).catch(error => {
+        cli.action.stop('Error')
+
         if(!error.response){
           return this.error(error.message)
         }
 
-        if(error.response.status === 403){
+        if(error.response.status === 403 || error.response.status === 401){
             this.wordupProject.setProjectConf('accessToken',null)
             this.error('Unable to connect with your provided project ID and/or project token. Please try again.')
         }else if(error.response.status === 400){
@@ -204,6 +222,11 @@ class PublishCommand extends Command {
             })
             this.error(message)
           }
+        }else if(error.response.status === 429){
+          const errorMsgs = error.response.data
+          this.error(errorMsgs.detail || 'Rate limiting exceeded')
+        }else{
+          this.error('Unknown error')
         }
     });
 

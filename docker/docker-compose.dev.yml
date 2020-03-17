@@ -13,10 +13,12 @@ services:
       - MARIADB_DATABASE=bitnami_wordpress
       - ALLOW_EMPTY_PASSWORD=yes
   wordpress:
-    image: 'bitnami/wordpress:5'
+    image: 'bitnami/wordpress:5.3.2'
+    user: root
+    
     restart: always
     ports:
-      - '8000:80'
+      - '8000:8080'
 
     volumes:
       - 'wordpress_data:/bitnami'

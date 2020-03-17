@@ -3,6 +3,7 @@ const path = require('path')
 const slugify = require('slugify')
 const fs = require('fs')
 const YAML = require('yaml')
+const axios = require('axios')
 
 const InstallationPrompt =  require('../prompts/installation')
 
@@ -211,11 +212,6 @@ class WordupInitGenerator extends Generator {
     }
   }
 
-  install() {
-    if(this.options.autoinstall){
-      this.npmInstall();
-    }
-  }
 }
 
 module.exports = WordupInitGenerator
