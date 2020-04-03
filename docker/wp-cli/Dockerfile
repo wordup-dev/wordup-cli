@@ -11,7 +11,7 @@ RUN apk add --no-cache zip shadow
 
 COPY php.conf.ini /usr/local/etc/php/conf.d/conf.ini
 
-RUN mkdir /var/mail 
+RUN mkdir -p /var/mail 
 RUN userdel -f www-data &&\
     useradd -l -u ${USER_ID} www-data
 
