@@ -170,7 +170,7 @@ class Project {
     //Check changed slug
     if(this.wPkg('slugName') !== this.config.slugName){
       this._wordupConfigstore.remove('projects.' + this.projectId)
-      this.error('You have changed the slug in your wordup config, please reinstall this project: '+chalk.bgBlue('wordup stop --project='+this.config.slugName+' --delete')+' and '+chalk.bgBlue('wordup install'),{exit:6})
+      this.error('You have changed the slug in your wordup config, please reinstall this project: '+chalk.bgBlue('wordup local:stop --project='+this.config.slugName+' --delete')+' and '+chalk.bgBlue('wordup local:install'),{exit:6})
       return false
     }    
 
@@ -208,7 +208,7 @@ class Project {
       this.log('')
       if (runningProjectNames.indexOf(this.wPkg('slugName')) >= 0) {
           if(showMsg){
-            this.log('The project ('+this.wPkg('slugName')+') is already running. You can stop it with: '+chalk.bgBlue('wordup stop'))
+            this.log('The project ('+this.wPkg('slugName')+') is already running. You can stop it with: '+chalk.bgBlue('wordup local:stop'))
           }
           return true
       }
@@ -384,17 +384,15 @@ class Project {
     let dockerComposeSettings = YAML.parse(file)
 
     // Set port
-    dockerComposeSettings.services.wordpress.ports = [port+':8080']
+    dockerComposeSettings.services.wordpress.ports = [port+':80']
 
     // Set volumes
     let wpVolumes = dockerComposeSettings.services.wordpress.volumes
-    wpVolumes.push(this.getProjectConfigPath('wordup.sh')+':/docker-entrypoint-init.d/wordup.sh')
-
     if(this.wPkg('type') === 'installation'){
       // In cloud node, don't mount volume
-      if(!isCloudNode) wpVolumes.push('./'+this.wPkg('srcFolder', 'src')+':/bitnami/wordpress/wp-content')
+      if(!isCloudNode) wpVolumes.push('./'+this.wPkg('srcFolder', 'src')+':/var/www/html/wp-content')
     }else{
-      wpVolumes.push('./'+this.wPkg('srcFolder', 'src')+':/bitnami/wordpress/wp-content/'+this.wPkg('type')+'/'+this.wPkg('slugName'))
+      wpVolumes.push('./'+this.wPkg('srcFolder', 'src')+':/var/www/html/wp-content/'+this.wPkg('type')+'/'+this.wPkg('slugName'))
     }
 
     wpVolumes.push('./'+this.wPkg('distFolder', 'dist')+':/wordup/dist')
@@ -408,7 +406,7 @@ class Project {
 
     // Set settings 
     let env = dockerComposeSettings.services.wordpress.environment 
-    env.push('WORDPRESS_BLOG_NAME='+this.wPkg('wpInstall.title', projectTitle))
+    /*env.push('WORDPRESS_BLOG_NAME='+this.wPkg('wpInstall.title', projectTitle))
 
     if(isCloudNode){
       env.push('WORDPRESS_SCHEME=https')
@@ -423,7 +421,7 @@ class Project {
       env.push('WORDPRESS_EMAIL='+admin.email)
     }else{
       //2do: Default Values
-    }
+    }*/
     env.push('WORDUP_PROJECT='+projectTitle)
     env.push('WORDUP_PROJECT_TYPE='+this.wPkg('type'))
     env.push('WORDUP_CLOUD_NODE='+ (isCloudNode ? 'yes' : 'no'))
@@ -439,8 +437,9 @@ class Project {
 
     const projectDockerComposeFile = this.getProjectConfigPath('docker-compose.yml')
 
+    const comment = '#Never change this file directly, use wordup-cli instead.\n\n'
     try {
-      fs.writeFileSync(projectDockerComposeFile, YAML.stringify(dockerComposeSettings))
+      fs.writeFileSync(projectDockerComposeFile, comment+YAML.stringify(dockerComposeSettings))
     } catch (err) {
       this.error('Could not create docker-compose file')
     }
@@ -457,7 +456,7 @@ class Project {
   }
 
   getProjectConfigPath(...addPath){
-    const projectConfigPath = path.join(this.oclifConfig.configDir, this.wPkg('slugName'))
+    const projectConfigPath = path.join(this.projectPath, '.wordup', 'docker')
     if (!fs.existsSync(projectConfigPath)) {
       fs.mkdirSync(projectConfigPath)
     }
@@ -474,7 +473,7 @@ class Project {
       const check = () => {
         setTimeout(() => {
           tries++;
-          shell.exec('docker-compose --project-directory ' + this.getProjectPath() + ' exec -T wordpress curl -sI http://localhost:8080',{silent: true}, function (code, _stdout, _stderr) {
+          shell.exec('docker-compose --project-directory ' + this.getProjectPath() + ' exec -T wordpress curl -sI http://localhost:80',{silent: true}, function (code, _stdout, _stderr) {
             if(code === 0){
               resolve({done: '✔', code:0})
             }else if (tries < 150) {

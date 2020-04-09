@@ -14,7 +14,7 @@ class InitCommand extends Command {
       this.log('Successfully init new wordup project ('+folder+')')
       this.log('Just open your project folder and start developing :-)')
       this.log('')
-      this.log('Use '+ chalk.bgBlue('wordup install')+' in your project folder, to start your docker development server')
+      this.log('Use '+ chalk.bgBlue('wordup local:install')+' in your project folder, to start your docker development server')
     }).catch((err) => {
       this.error(err)
     })
@@ -51,7 +51,7 @@ class InitCommand extends Command {
 
 InitCommand.description = `Create a new wordup project in the current directoy
 ...
-After you have initialized a new project, you can start the docker development server with 'wordup install'
+After you have initialized a new project, you can start the docker development server with 'wordup local:install'
 `
 InitCommand.flags = {
   autoinstall: flags.boolean({description: 'DEPRECATED: Automatically install wordup project after init', default: false, allowNo: true, hidden:true }),

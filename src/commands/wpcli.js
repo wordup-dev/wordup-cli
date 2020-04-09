@@ -12,7 +12,7 @@ class WpcliCommand extends Command {
     }
 
     if(!this.wordupProject.isWordupProjectRunning()){
-      this.log('Your project is not running, please use '+chalk.bgBlue('wordup install') +' or '+chalk.bgBlue('wordup start') )
+      this.log('No local WordPress server found, please use '+chalk.bgBlue('wordup local:install') +' or '+chalk.bgBlue('wordup local:start') )
       this.exit(4)
     }
 
@@ -30,7 +30,7 @@ class WpcliCommand extends Command {
     const wpCliCmd = escapedArgs.join(' ')
 
     this.log('Run command: wp ' + wpCliCmd)
-    shell.exec('docker-compose --project-directory ' + this.wordupProject.getProjectPath() + ' exec -T wordpress sudo -u daemon wp ' + wpCliCmd)
+    shell.exec('docker-compose --project-directory ' + this.wordupProject.getProjectPath() + ' exec -u www-data -T wordpress wp ' + wpCliCmd)
 
   }
 }

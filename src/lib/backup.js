@@ -9,6 +9,7 @@ const utils =  require('./utils')
 class Backup {
 
     constructor(project) {
+        this.wpVersion = null
         this.project = project
         this.backupFile = null
         project.prepareDockerComposeUp()
@@ -20,7 +21,7 @@ class Backup {
         const sqlPath = (customPath ? customPath + '/' : '') + 'sql_dump.sql'
 
         return new Promise((resolve, reject) => {
-            shell.exec('docker-compose --project-directory ' + this.project.getProjectPath() + ' exec -T wordpress sudo -u daemon wp db export /wordup/dist/'+sqlPath,{silent:true}, (code, stdout, stderr) => {
+            shell.exec('docker-compose --project-directory ' + this.project.getProjectPath() + ' exec -u www-data -T wordpress wp db export /wordup/dist/'+sqlPath,{silent:false}, (code, stdout, stderr) => {
                 if(code !== 0){
                     reject('Unable to export SQL dump');
                 }
@@ -30,6 +31,24 @@ class Backup {
             })
         })
 
+    }
+
+    async getWPVersion(){
+
+        if(this.wpVersion){
+            return Promise.resolve(this.wpVersion)
+        }
+        
+        return new Promise((resolve, reject) => {
+            shell.exec('docker-compose --project-directory ' + this.project.getProjectPath() + ' exec -u www-data -T wordpress wp core version', {silent:true}, (code, stdout, stderr) => {
+                if(code !== 0){
+                    reject('Could not find WordPress version number')
+                }
+
+                this.wpVersion = stdout.trim()
+                resolve(this.wpVersion)
+            })
+        })
     }
 
     async createInstallation(distPath, saveToTmp) {
@@ -52,12 +71,12 @@ class Backup {
         
         let copyFiles =  new Promise((resolve, reject) => {
 
-            shell.exec('docker-compose --project-directory ' + this.project.getProjectPath() + ' exec -T wordpress sudo -u daemon cp -r /bitnami/wordpress/. /wordup/dist/'+tmpobjParsed.name, {silent:true}, (code, stdout, stderr) => {
+            shell.exec('docker-compose --project-directory ' + this.project.getProjectPath() + ' exec -T wordpress cp -r /var/www/html/. /wordup/dist/'+tmpobjParsed.name, {silent:true}, (code, stdout, stderr) => {
                 if(code !== 0){
                     reject('Could not copy the installation files')
                 }
 
-                //Remove some unessarry files
+                //Remove some unnecessary files
                 const tmpFiles = ['.initialized', '.user_scripts_initialized']
                 tmpFiles.forEach(file => fs.removeSync( path.join(tmpobj.name, file)))
                 resolve()
@@ -65,19 +84,16 @@ class Backup {
         })
 
         let createJsonInfo =  new Promise((resolve, reject) => {
-            shell.exec('docker-compose --project-directory ' + this.project.getProjectPath() + ' exec -T wordpress sudo -u daemon wp core version', {silent:true}, (code, stdout, stderr) => {
-                if(code !== 0){
-                    reject('Could not copy the installation files')
-                }
-
+            this.getWPVersion().then(version => {
                 fs.writeJsonSync(path.join(tmpobj.name, 'info.json'), {
                     source:'wordup-cli',
-                    wp_version: stdout.trim(),
+                    wp_version: version,
                     created:new Date()
                 }, {spaces:' '})
 
                 resolve()
-            })
+            }).catch((e) => reject(e))
+
         })
 
         return Promise.all([copyFiles, createJsonInfo, this.createSql(tmpobjParsed.name)]).then(() => {

@@ -9,10 +9,10 @@ const tar = require('tar')
 const tmp = require('tmp')
 const path = require('path')
 
-const Command =  require('../command-base')
-const utils =  require('../lib/utils')
+const Command =  require('../../command-base')
+const utils =  require('../../lib/utils')
 
-const InstallationPrompt =  require('../prompts/installation')
+const InstallationPrompt =  require('../../prompts/installation')
 
 class InstallCommand extends Command {
   async run() {
@@ -29,7 +29,7 @@ class InstallCommand extends Command {
 
     // Check if project is already installed
     if (project.isInstalled()) {
-      this.log('The development server and volumes are already installed. To delete this installation use: '+chalk.bgBlue('wordup stop --delete'))
+      this.log('The development server and volumes are already installed. To delete this installation use: '+chalk.bgBlue('wordup local:stop --delete'))
       this.exit(4)
     }
 
@@ -105,7 +105,7 @@ class InstallCommand extends Command {
     //Check project type specific things
     this.checkProjectType()
     //Set install startup script
-    this.createWordupScript(wordupArchive)
+    this.createWordupScript(wordupArchive, siteUrl)
     //Prepare docker-compose specific settings
     project.prepareDockerComposeUp(flags.port)
 
@@ -125,9 +125,17 @@ class InstallCommand extends Command {
       })
     })
 
-    // ----- Check if server is accessible ----
-    await this.customLogs('Waiting for the containers to initialize', (resolve, reject, showLogs) => {
-      project.checkLiveliness(siteUrl).then(res => resolve(res)).catch(e => reject(e))
+    // ----- Installing WordPress ----
+    await this.customLogs('Installing WordPress based on wordup config', (resolve, reject, showLogs) => {
+      project.checkLiveliness(siteUrl).then(res => {
+        shell.exec('docker-compose --project-directory ' + project.getProjectPath() + ' exec -T wordpress bash /wordup/config/docker/wordup.sh install',{silent: !showLogs}, function (code, _stdout, _stderr) {
+          if (code === 0) {
+            resolve({done: '✔', code:code})
+          } else {
+            reject({done: 'There was an error while installing WordPress', code:code})
+          }
+        })
+      }).catch(e => reject(e))
     })
 
     this.log('')
@@ -156,11 +164,9 @@ class InstallCommand extends Command {
     }
   }
 
-  createWordupScript(initFromArchiveJson){
+  createWordupScript(initFromArchiveJson, siteUrl){
     const projectType = this.wordupProject.wPkg('type')
-    const customShellScript = this.wordupProject.getProjectConfigPath('wordup.sh')
 
-    fs.copySync(this.wordupProject.wordupDockerPath('wordup.sh'), customShellScript)
     
     const plugins = this.wordupProject.wPkg('wpInstall.plugins', {})
     const themes = this.wordupProject.wPkg('wpInstall.themes', {})
@@ -171,60 +177,69 @@ class InstallCommand extends Command {
     if(initFromArchiveJson){
       let excludeSrc = ''
 
-      customScripts.push('if [ $(sudo -u daemon wp core version) != "'+initFromArchiveJson.wp_version+'" ]; then sudo -u daemon wp core update --force --version='+initFromArchiveJson.wp_version+'; fi')
+      customScripts.push('\tif [ $(sudo -u www-data wp core version) != "'+initFromArchiveJson.wp_version+'" ]; then sudo -u www-data wp core update --force --version='+initFromArchiveJson.wp_version+'; fi')
       
       if(projectType === 'installation'){
-        customScripts.push('sudo rm -rf /bitnami/wordpress/wp-content/*')
+        //customScripts.push('\trm -rf /var/www/html/wp-content/*')
       }else{
         excludeSrc = '--exclude="backup/wp-content/'+projectType+'/'+this.wordupProject.wPkg('slugName')+'/*"'
       }
 
-      customScripts.push('sudo tar -xvf /wordup/dist/'+initFromArchiveJson.path+' -C /bitnami/wordpress '+excludeSrc+' --strip=1 --skip-old-files')
-      customScripts.push('sudo -u daemon wp db import /bitnami/wordpress/sql_dump.sql')
-      customScripts.push('sudo rm /bitnami/wordpress/sql_dump.sql /bitnami/wordpress/info.json')
-      customScripts.push('sudo chown -R daemon:daemon /bitnami/wordpress/wp-content')
+      customScripts.push('\ttar -xvf /wordup/dist/'+initFromArchiveJson.path+' backup/wp-content -C /var/www/html/wp-content '+excludeSrc+' --strip=1 --skip-old-files')
+      customScripts.push('\ttar -xvf /wordup/dist/'+initFromArchiveJson.path+' backup/sql_dump.sql -C /var/www/html --strip=1 --skip-old-files')
+      customScripts.push('\tsudo -u www-data wp db import /var/www/html/sql_dump.sql')
+      customScripts.push('\trm /var/www/html/sql_dump.sql')
+      customScripts.push('\tchown -R www-data:www-data /var/www/html/wp-content')
 
-      stream.end()
+      this.createCustomShellScript(customScripts)
       return
+    }else{
+
+      // Normal installation
+      const users = this.wordupProject.wPkg('wpInstall.users')
+      let admin = null
+      if(users && typeof users === 'object'){
+        admin = users[0]
+      }else{
+        this.error('Please provide an admin user in your config.yml')
+      }
+      customScripts.push('\tchown -R www-data:www-data /var/www/html/wp-content')
+      customScripts.push('\tsudo -u www-data wp core install --url='+siteUrl+' --title="'+this.wordupProject.wPkg('wpInstall.title', 'Wordup')+'" --admin_user='+admin.name+' --admin_password="'+admin.password+'" --admin_email='+admin.email)
+      //customScripts.push('\tsudo -u www-data wp plugin install https://api.wordup.dev/release_dl/wordup-connect/latest/wordup-connect.zip --activate')
     }
-
-    // ----- Debug -------
-    customScripts.push('sudo echo "display_errors = On" >> /opt/bitnami/php/conf/php.ini')
-    customScripts.push('sudo wp config set WP_DEBUG true --raw --allow-root')
-
 
     // ----- Custom language ----
     const lang = this.wordupProject.wPkg('wpInstall.language', 'en_US')
     if(lang !== 'en_US'){
-      customScripts.push('sudo -u daemon wp language core install '+lang+' --activate')
+      customScripts.push('\tsudo -u www-data wp language core install '+lang+' --activate')
     }
 
     // ----- Custom version ----
     const version = this.wordupProject.wPkg('wpInstall.version', null)
     if(version && version !== 'latest'){
-      customScripts.push('sudo -u daemon wp core update --force --version='+version)
+      customScripts.push('\tsudo -u www-data wp core update --force --version='+version)
     }
 
     // ---- Themes & plugins
     Object.keys(plugins).forEach(value => {
       let version = plugins[value] !== 'latest' ? ' --version='+plugins[value] : ''
-      customScripts.push('sudo -u daemon wp plugin install '+value+version)
+      customScripts.push('\tsudo -u www-data wp plugin install '+value+version)
     })
 
     Object.keys(themes).forEach(value => {
       let version = themes[value] !== 'latest' ? ' --version='+themes[value] : ''
-      customScripts.push('sudo -u daemon wp theme install '+value+version)
+      customScripts.push('\tsudo -u www-data wp theme install '+value+version)
     })
 
     // ------ Roles ------
     const roles = this.wordupProject.wPkg('wpInstall.roles', [])
     roles.forEach(role => {
       let clone_from = role.hasOwnProperty('clone_from') ? ' --clone='+role.clone_from : ''
-      customScripts.push('sudo -u daemon wp role create '+role.key+' "'+role.name+'"'+clone_from)
+      customScripts.push('\tsudo -u www-data wp role create '+role.key+' "'+role.name+'"'+clone_from)
 
       if(role.hasOwnProperty('capabilities') && typeof role.capabilities === 'object'){
         role.capabilities.forEach(cap => {
-          customScripts.push('sudo -u daemon wp cap add '+role.key+' '+cap+' --quiet')
+          customScripts.push('\tsudo -u www-data wp cap add '+role.key+' '+cap+' --quiet')
         })
       }
 
@@ -234,28 +249,37 @@ class InstallCommand extends Command {
     const users = this.wordupProject.wPkg('wpInstall.users', [])
     users.forEach((user, index) => {
       if(index > 0){
-          customScripts.push('sudo -u daemon wp user create "'+user.name+'" '+user.email+' --role='+user.role+' --user_pass="'+user.password+'" --quiet')
+          customScripts.push('\tsudo -u www-data wp user create "'+user.name+'" '+user.email+' --role='+user.role+' --user_pass="'+user.password+'" --quiet')
       }
     })
 
     // ------ Media ------
     const mediaPath = this.wordupProject.getProjectPath('.wordup','media')
     if (fs.existsSync(mediaPath)) {
-        customScripts.push('sudo -u daemon wp media import /wordup/config/media/* --user=1')
+        customScripts.push('\tsudo -u www-data wp media import /wordup/config/media/* --user=1')
     }
 
     // ------ Scaffold ---
     const scaffold = this.wordupProject.getProjectPath(this.wordupProject.wPkg('srcFolder', 'src'), '.scaffold')
     if (fs.existsSync(scaffold)) {
       if(projectType === 'plugins'){
-        customScripts.push('sudo -u daemon wp scaffold plugin '+this.wordupProject.wPkg('slugName'))
+        customScripts.push('\tsudo -u www-data wp scaffold plugin '+this.wordupProject.wPkg('slugName'))
       }else if(projectType === 'themes'){
-        customScripts.push('sudo -u daemon wp scaffold _s '+this.wordupProject.wPkg('slugName'))
+        customScripts.push('\tsudo -u www-data wp scaffold _s '+this.wordupProject.wPkg('slugName'))
       }
       fs.unlinkSync(scaffold)
     }
 
     //Create custom bash script
+    this.createCustomShellScript(customScripts)
+
+  }
+
+  createCustomShellScript(customScripts){
+    const customShellScript = this.wordupProject.getProjectConfigPath('wordup.sh')
+
+    fs.copySync(this.wordupProject.wordupDockerPath('wordup.sh'), customShellScript)
+
     const wordupBash = fs.readFileSync(customShellScript, 'utf8')
 
     const customWordupBash = wordupBash.replace(/###CUSTOM_SCRIPTS###/g, customScripts.join('\n'));
@@ -349,8 +373,8 @@ InstallCommand.flags = {
   port: flags.string({char: 'p', description: 'Install on a different port', default:'8000'}),
   prompt: flags.boolean({description: 'If you want to do the setup again', exclusive: ['archive','connect']}),
   archive: flags.string({description: 'Install from a wordup archive (needs to be located in your dist folder).'}),
-  connect: flags.string({description: 'Install from a WordPress running website.', exclusive: ['archive']}),
-  'private-key': flags.string({description: 'Private key for the wordup-connect plugin', exclusive: ['archive'], dependsOn: ['connect']}),
+  connect: flags.string({description: 'Install from a WordPress running website.', exclusive: ['archive'], hidden:true}),
+  'private-key': flags.string({description: 'Private key for the wordup-connect plugin', exclusive: ['archive'], dependsOn: ['connect'], hidden:true}),
 }
 
 module.exports = InstallCommand

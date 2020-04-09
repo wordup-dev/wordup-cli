@@ -20,8 +20,8 @@ class ExportCommand extends Command {
       this.exit(1)
     }
 
-    if(!project.isWordupProjectRunning()){
-      this.log('Your project is not running, please use ' + chalk.bgBlue('wordup install') + ' or '+chalk.bgBlue('wordup start') )
+    if(exportType !== 'src' && !project.isWordupProjectRunning()){
+      this.log('No local WordPress server found, please use ' + chalk.bgBlue('wordup local:install') + ' or '+chalk.bgBlue('wordup local:start') )
       this.exit(4)
     }
 
@@ -66,21 +66,26 @@ class ExportCommand extends Command {
   }
 
   async getVersion(){
-    const type = this.wordupProject.wPkg('type') === 'plugins' ? 'plugin' : 'theme'
-    const slugName = this.wordupProject.wPkg('slugName')
 
-    this.wordupProject.prepareDockerComposeUp()
+    if(this.wordupProject.isWordupProjectRunning()){
+      const type = this.wordupProject.wPkg('type') === 'plugins' ? 'plugin' : 'theme'
+      const slugName = this.wordupProject.wPkg('slugName')
+      this.wordupProject.prepareDockerComposeUp()
 
-    return new Promise((resolve, reject) => {
+      return new Promise((resolve, reject) => {
 
-      shell.exec('docker-compose --project-directory ' + this.wordupProject.getProjectPath() + ' exec -T wordpress sudo -u daemon wp '+type+' get '+slugName+' --field=version',{silent:true}, (code, stdout, stderr) => {
-        if(code !== 0){
-            return reject('Unable to get version of '+type)
-        }
+        shell.exec('docker-compose --project-directory ' + this.wordupProject.getProjectPath() + ' exec -u www-data -T wordpress wp '+type+' get '+slugName+' --field=version',{silent:true}, (code, stdout, stderr) => {
+          if(code !== 0){
+              return reject('Unable to get version of '+type)
+          }
 
-        return resolve(stdout.trim())
+          return resolve(stdout.trim())
+        })
       })
-    })
+
+    }else{
+      return Promise.resolve('latest')
+    }
   }
 
   async createSrcDist(srcPath, distPath) {
@@ -123,6 +128,7 @@ class ExportCommand extends Command {
 ExportCommand.description = `Export your plugin/theme or the whole WordPress installation
 ...
 The exported zip-file of a plugin/theme are ready for distribution.
+
 An exported installation file can be used for setting up a remote WordPress installation or
 for backing up your current development stack. 
 `

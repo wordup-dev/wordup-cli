@@ -21,8 +21,10 @@ class OAuth {
     const redirectUri = 'http://localhost:8442/oauthtoken'
     const app = express()
 
+    const state = Math.floor(Date.now() / 1000)
+
     app.get('/',  (req, res) => {
-      const params = '?client_id='+CLIENT_ID+'&state=something&redirect_uri='+encodeURIComponent(redirectUri)
+      const params = '?client_id='+CLIENT_ID+'&state='+state+'&redirect_uri='+encodeURIComponent(redirectUri)
       res.redirect(this.OAUTH_WORDUP_AUTH_URL+params)
     })
 
@@ -83,16 +85,13 @@ class OAuth {
       const tokenData = config.get('token')
 
       if ((timeNow + 15) >= tokenData.expires_at) {
-        console.log('refresh')
         axios.post(this.OAUTH_WORDUP_TOKEN_URL, {
           grant_type: 'refresh_token',
           refresh_token: tokenData.refresh_token,
           state: RANDOM_STATE,
           client_id: CLIENT_ID,
         }).then(ares => {
-          console.log(`refresh statusCode: ${ares.status}`)
           const newTokenData = ares.data
-          console.log(newTokenData)
           config.set('token', newTokenData)
           config.set('token.expires_at', Math.floor(Date.now() / 1000) + newTokenData.expires_in)
 

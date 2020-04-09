@@ -25,6 +25,6 @@ describe('start', () => {
   .command(['start'])
   .exit(4)
   .it('Exit with status 4 if project not installed', ctx => {
-    expect(ctx.stdout).to.eq('Your current installation is not set up. Please run first wordup install\n')
+    expect(ctx.stdout).to.eq('Your current installation is not set up. Please run first wordup local:install\n')
   })
 })

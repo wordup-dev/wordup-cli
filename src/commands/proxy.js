@@ -37,7 +37,7 @@ class ProxyCommand extends Command {
     }
 
     if(args.action === 'start' && !project.isWordupProjectRunning()){
-      this.log('Your project is not running, please use '+chalk.bgBlue('wordup install') +' or '+chalk.bgBlue('wordup start') )
+      this.log('Your project is not running, please use '+chalk.bgBlue('wordup local:install') +' or '+chalk.bgBlue('wordup local:start') )
       this.exit(4)
     }
 

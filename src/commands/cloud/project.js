@@ -49,7 +49,7 @@ class ProjectCommand extends Command {
         this.log('')
         this.log('Successfully created new project on wordup.dev:')
         this.log('')
-        await cli.url('Go to wordup.dev', 'https://google.com')
+        await cli.url('Go to wordup.dev', 'https://console.wordup.dev/projects/'+project.wPkg('slugName'))
         this.log('')
     }catch(error){
         this.error(error.message)

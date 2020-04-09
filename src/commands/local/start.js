@@ -1,9 +1,9 @@
 const {flags} = require('@oclif/command')
-const Command =  require('../command-base')
+const Command =  require('../../command-base')
 const shell = require('shelljs')
 const open = require('open')
 const chalk = require('chalk')
-const utils =  require('../lib/utils')
+const utils =  require('../../lib/utils')
 
 class StartCommand extends Command {
   async run() {
@@ -20,7 +20,7 @@ class StartCommand extends Command {
     }
 
     if (!project.isInstalled()) {
-      this.log('This project installation is not set up. Please run first: ' + chalk.bgBlue('wordup install'))
+      this.log('This project installation is not set up. Please run first: ' + chalk.bgBlue('wordup local:install'))
       this.exit(4)
     }
 
@@ -47,7 +47,7 @@ class StartCommand extends Command {
 
     // ------ Exec startup script -----
     await this.customLogs('Execute startup script', (resolve, reject, showLogs) => {
-      shell.exec("docker-compose --project-directory " + project.getProjectPath() + " exec -T wordpress sudo bash /docker-entrypoint-init.d/wordup.sh start", {silent: !showLogs}, function (code, _stdout, _stderr) {
+      shell.exec("docker-compose --project-directory " + project.getProjectPath() + " exec -T wordpress bash /wordup/config/docker/wordup.sh start", {silent: !showLogs}, function (code, _stdout, _stderr) {
         if (code === 0) {
           resolve({done: '✔', code: code})
         } else {
@@ -72,7 +72,7 @@ StartCommand.aliases = ['run']
 
 StartCommand.description = `Start the WordPress development server
 ...
-You can run only this command if your development stack is installed.
+You can onl run this command if your development stack is installed.
 `
 
 StartCommand.flags = {

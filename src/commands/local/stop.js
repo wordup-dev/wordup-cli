@@ -1,5 +1,5 @@
 const {flags} = require('@oclif/command')
-const Command =  require('../command-base')
+const Command =  require('../../command-base')
 
 const shell = require('shelljs')
 const path = require('path')
@@ -13,27 +13,32 @@ class StopCommand extends Command {
     let projectId = this.wordupProject.projectId
 
     const wordupConfig = this.wordupConfig
-    const configdir = this.config.configDir
 
-    if(flags.force){
-      // Use the template 
-      shell.env.COMPOSE_FILE = this.wordupProject.wordupDockerPath('docker-compose.dev.yml')
-    }else if (projectName) {
+    if (flags.force || projectName) {
       // Different project -> find project id
+      if(!projectName && this.wordupProject.wPkg('slugName')){
+        projectName = this.wordupProject.wPkg('slugName')
+      }
       projectId = false
+      let projectPath = false
       const projects = wordupConfig.get('projects')
 
+      Object.keys(projects).forEach(key => {
+        if (projects[key].slugName === projectName) {
+          projectId = key
+          projectPath = projects[key].path
+        }
+      })
+
       // Check if compose file exists
-      const composeFile = path.join(configdir, projectName, 'docker-compose.yml' )
+      const composeFile = path.join(projectPath, '.wordup', 'docker', 'docker-compose.yml' )
       if(fs.existsSync(composeFile)){
-        shell.env.COMPOSE_FILE = path.join(configdir, projectName, 'docker-compose.yml' )
-        Object.keys(projects).forEach(key => {
-          if (projects[key].slugName === projectName) {
-            projectId = key
-          }
-        })
+        shell.env.COMPOSE_FILE = composeFile
+      }else if(flags.force){
+        // if not exist and force is provided: use the docker-compose.dev file 
+        shell.env.COMPOSE_FILE = this.wordupProject.wordupDockerPath('docker-compose.dev.yml')
       }else{
-        this.error('Could not find a running wordup project with this name', {exit: 6})
+        this.error('Could not find a docker-compose file under: '+composeFile, {exit: 6})
       }
 
     } else if (this.wordupProject.wPkg('slugName')) {
@@ -55,11 +60,6 @@ class StopCommand extends Command {
           if (deleteAll) {
             wordupConfig.set('projects.' + projectId + '.installedOnPort', false)
             wordupConfig.remove('projects.' + projectId + '.proxy')
-
-            // Delete project config
-            if(projectName){
-              fs.removeSync(path.join(configdir, projectName))
-            }
           }
         }
         resolve({done: (code === 0 ? '✔' : 'Oops, something went wrong'), code:code})

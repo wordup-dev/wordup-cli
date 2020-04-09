@@ -33,7 +33,7 @@ class AuthCommand extends Command {
         try {
           const response = await api.userProfile()
           const data = response.data
-          this.log('Already logged in as '+data.email+'. Use the --logout flag if you want to logout.')
+          this.log('Already logged in as '+data.email_fb+'. Use the --logout flag if you want to logout.')
         }catch(error){
           this.error(error.message)
         }
@@ -50,7 +50,6 @@ You will be redirect to the wordup.dev page.
 `
 
 AuthCommand.flags = {
-  test: flags.boolean({char: 't', description: 'Test API connection'}),
   logout: flags.boolean({char: 'l', description: 'Logout of your account'}),
 }
 

@@ -60,8 +60,8 @@ class WordupAPI {
     return this.api.post('/projects/', project)
   } 
 
-  setupWPNode(server, settings){
-    return this.api.post('/wp_nodes/upload_setup/', {server:null, environment:'test', settings:settings})
+  setupWPNode(server, wpVersion){
+    return this.api.post('/wp_nodes/upload_setup/', {server:null, environment:'test', wp_version:wpVersion, settings:{}})
   } 
   
 }

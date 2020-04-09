@@ -170,46 +170,6 @@ class WordupInitGenerator extends Generator {
     // Writing wordup config
     this.fs.copyTpl(this.templatePath('config.yml.ejs'), this.destinationPath('.wordup/config.yml'), dotWordupConfig)
 
-    //Writing package.json
-    const {engines, name, version} = require('../../package.json')
-
-    let pjson = {
-      name: projectNameSlug,
-      version: '0.1.0',
-      private:true,
-      engines: engines,
-      scripts: {
-        start:'wordup start || true',
-        build:'wordup export',
-        postinstall:'wordup install || true'
-      }
-    }
-
-    //Add wordup-cli if init command was executed by npx itself or a different programm
-    const entryPoint = process.env._ || ''
-    if(entryPoint.endsWith('npx') || process.env.NPX_CLI_JS){
-      pjson.scripts.start = 'npx wordup start || true'
-      pjson.scripts.build = 'npx wordup export'
-      pjson.scripts.postinstall = 'npx wordup install || true'
-      pjson.devDependencies = {
-        "wordup-cli": "^"+version
-      }
-    }
-
-    if(this.answers.repository){
-      pjson.repository = this.answers.repository
-    }
-
-    if(this.answers.homepage){
-      pjson.homepage = this.answers.homepage
-    }
-
-    this.fs.writeJSON(this.destinationPath('package.json'), pjson, {spaces: 4})
-
-    // Create docker-compose file
-    if (this.answers.custom_compose) {
-      // 2do
-    }
   }
 
 }

@@ -21,7 +21,7 @@ class CloneCommand extends Command {
     } 
 
     if(!project.isWordupProjectRunning()){
-      this.log('Your project is not running, please use '+chalk.bgBlue('wordup install') +' or '+chalk.bgBlue('wordup start') )
+      this.log('Your project is not running, please use '+chalk.bgBlue('wordup local:install') +' or '+chalk.bgBlue('wordup local:start') )
       this.exit(4)
     }
 
@@ -33,22 +33,30 @@ class CloneCommand extends Command {
     }
     this.api = new WordupAPI(this.wordupConfig)
 
+    // Prepare backup class
+    const distPath = project.getProjectPath(project.wPkg('distFolder','dist'))
+    const backup = new Backup(project)
+
+    let wpVersion = null
+    try {      
+      wpVersion = await backup.getWPVersion()
+    }catch(e){
+      this.error(e)
+    }
+
     //Get upload url
     let apiResp =  null;
     try {
-      apiResp = await this.api.setupWPNode(server,{})
+      apiResp = await this.api.setupWPNode(server, wpVersion)
     }catch(e){      
       this.error(e.message)
     }
 
     const uploadUrl = apiResp.data.upload_url
 
-    // Create backup
+    // Create installtion files
     cli.action.start('Create WordPress backup from project')
-
-    const distPath = project.getProjectPath(project.wPkg('distFolder','dist'))
-    const backup = new Backup(project)
-    try {
+    try {      
       await backup.createInstallation(distPath, true)
       cli.action.stop()
 
@@ -59,16 +67,16 @@ class CloneCommand extends Command {
     }
 
     // Upload the backup
-    this.uploadArchive(backup.backupFile, uploadUrl).then(res => {
+    this.uploadArchive(backup.backupFile, uploadUrl, wpVersion).then(res => {
       this.log('')
-      this.log('The WordPress installation will be created now, this can take up to 5 minutes. Please check the status in the app')
+      this.log('The WordPress installation will be created now, this can take up to 5 minutes. Please check the status under https://console.wordup.dev')
     })
 
   }
 
 
 
-  async uploadArchive(archivePath, uploadUrl){
+  async uploadArchive(archivePath, uploadUrl, wpVersion){
 
     const data = fs.createReadStream(archivePath)
     const stat = fs.statSync(archivePath)
@@ -85,7 +93,8 @@ class CloneCommand extends Command {
         headers: {
             'Content-Type': "application/gzip",
             'Content-Length': stat.size,
-            'x-goog-content-length-range':'0,'+MAX_UPLOAD_SIZE_IN_BYTES
+            'x-goog-content-length-range':'0,'+MAX_UPLOAD_SIZE_IN_BYTES,
+            'x-goog-meta-wpversion':wpVersion
         }
     }
 
@@ -114,11 +123,11 @@ class CloneCommand extends Command {
 
 }
 
-CloneCommand.description = `Clone current running WordPress installation to a server/cluster of your wordup account
+CloneCommand.description = `Clone current running WordPress installation to a new node in your wordup account
 ...
-Automatically backups and uploads your running WordPress installation to wordup.
+This command will automatically backup and upload your running WordPress installation to wordup.
+
 After cloning the project, your data will be deleted from our servers. 
-Please be aware that you need to setup a VM or cluster in your wordup account.
 `
 
 CloneCommand.flags = {

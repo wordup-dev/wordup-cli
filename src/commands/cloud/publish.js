@@ -187,7 +187,7 @@ class PublishCommand extends Command {
 
     cli.action.start('Upload project source data')
 
-    return axios.post(api_url+'/projects/'+this.projectSlug+'/build_url/',{semver:this.semverIncrement, build_type:this.publishEnv}, {
+    return axios.post(api_url+'/projects/'+this.projectSlug+'/build_url_token/',{semver:this.semverIncrement, build_type:this.publishEnv}, {
         headers:{
             'Authorization': "token " +this.accessToken
         }
@@ -225,6 +225,8 @@ class PublishCommand extends Command {
         }else if(error.response.status === 429){
           const errorMsgs = error.response.data
           this.error(errorMsgs.detail || 'Rate limiting exceeded')
+        }else if(error.response.status === 404){
+          this.error('Project "'+this.projectSlug+'" not found on wordup.dev')
         }else{
           this.error('Unknown error')
         }
@@ -238,11 +240,12 @@ class PublishCommand extends Command {
 PublishCommand.description = `Publish your WordPress theme or plugin to your private theme/plugin directory on wordup.
 ...
 The private directory on wordup manages your WordPress plugin and theme projects in the cloud.
-After publishing your theme or plugin, all WordPress installations can update your theme/plugin to the new project version.
+
+After publishing the project, all WordPress installations can update your theme/plugin to the new project version.
 `
 
 PublishCommand.flags = {
-  env:flags.string({description: 'To what environment should be published', required:true, options: ['release', 'staging']} ),
+  env:flags.string({description: 'Specify the environment you want to publish to', required:true, options: ['release', 'staging']} ),
   increment: flags.string({description: 'Increment a version by the specified level', default: 'minor',options: ['major', 'minor', 'patch']} ),
   token: flags.string({description: 'A provided project token', env: 'WORDUP_PROJECT_AUTH_TOKEN'}),
 }
