@@ -80,7 +80,7 @@ $ npm install -g wordup-cli
 $ wordup COMMAND
 running command...
 $ wordup (-v|--version|version)
-wordup-cli/0.7.3 darwin-x64 node-v10.15.0
+wordup-cli/0.7.4 darwin-x64 node-v10.15.0
 $ wordup --help [COMMAND]
 USAGE
   $ wordup COMMAND
@@ -97,7 +97,7 @@ USAGE
 * [`wordup snippet TYPE NAME`](#wordup-snippet-type-name)
 * [`wordup start`](#wordup-start)
 * [`wordup stop`](#wordup-stop)
-* [`wordup wpcli COMMAND`](#wordup-wpcli-command)
+* [`wordup wpcli [COMMAND]`](#wordup-wpcli-command)
 
 ## `wordup export TYPE`
 
@@ -120,7 +120,7 @@ DESCRIPTION
   for backing up your current development stack.
 ```
 
-_See code: [src/commands/export.js](https://github.com/wordup-dev/wordup-cli/blob/v0.7.3/src/commands/export.js)_
+_See code: [src/commands/export.js](https://github.com/wordup-dev/wordup-cli/blob/v0.7.4/src/commands/export.js)_
 
 ## `wordup help [COMMAND]`
 
@@ -137,7 +137,7 @@ OPTIONS
   --all  see all commands in CLI
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.0/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.3/src/commands/help.ts)_
 
 ## `wordup init`
 
@@ -159,7 +159,7 @@ DESCRIPTION
   You can stop this behavior with --no-autoinstall
 ```
 
-_See code: [src/commands/init.js](https://github.com/wordup-dev/wordup-cli/blob/v0.7.3/src/commands/init.js)_
+_See code: [src/commands/init.js](https://github.com/wordup-dev/wordup-cli/blob/v0.7.4/src/commands/init.js)_
 
 ## `wordup install`
 
@@ -192,7 +192,7 @@ DESCRIPTION
   Note: Flags in this command overrule the wordup config.yml.
 ```
 
-_See code: [src/commands/install.js](https://github.com/wordup-dev/wordup-cli/blob/v0.7.3/src/commands/install.js)_
+_See code: [src/commands/install.js](https://github.com/wordup-dev/wordup-cli/blob/v0.7.4/src/commands/install.js)_
 
 ## `wordup list`
 
@@ -213,7 +213,7 @@ ALIASES
   $ wordup ls
 ```
 
-_See code: [src/commands/list.js](https://github.com/wordup-dev/wordup-cli/blob/v0.7.3/src/commands/list.js)_
+_See code: [src/commands/list.js](https://github.com/wordup-dev/wordup-cli/blob/v0.7.4/src/commands/list.js)_
 
 ## `wordup snippet TYPE NAME`
 
@@ -238,7 +238,7 @@ DESCRIPTION
   As an example: wordup snippet block MyGutenbergBlock
 ```
 
-_See code: [src/commands/snippet.js](https://github.com/wordup-dev/wordup-cli/blob/v0.7.3/src/commands/snippet.js)_
+_See code: [src/commands/snippet.js](https://github.com/wordup-dev/wordup-cli/blob/v0.7.4/src/commands/snippet.js)_
 
 ## `wordup start`
 
@@ -260,7 +260,7 @@ ALIASES
   $ wordup run
 ```
 
-_See code: [src/commands/start.js](https://github.com/wordup-dev/wordup-cli/blob/v0.7.3/src/commands/start.js)_
+_See code: [src/commands/start.js](https://github.com/wordup-dev/wordup-cli/blob/v0.7.4/src/commands/start.js)_
 
 ## `wordup stop`
 
@@ -283,15 +283,15 @@ DESCRIPTION
   Optionally you can use -d to delete the whole installation, this includes all files in your WordPress installation.
 ```
 
-_See code: [src/commands/stop.js](https://github.com/wordup-dev/wordup-cli/blob/v0.7.3/src/commands/stop.js)_
+_See code: [src/commands/stop.js](https://github.com/wordup-dev/wordup-cli/blob/v0.7.4/src/commands/stop.js)_
 
-## `wordup wpcli COMMAND`
+## `wordup wpcli [COMMAND]`
 
 Use an official WordPress CLI command on the current running project
 
 ```
 USAGE
-  $ wordup wpcli COMMAND
+  $ wordup wpcli [COMMAND]
 
 ARGUMENTS
   COMMAND  the wp cli command
@@ -301,10 +301,13 @@ OPTIONS
 
 DESCRIPTION
   ...
-  As an example: wordup wpcli post list
+  As an example: wordup wpcli post list. 
+
+  If you run wordup wpcli without any argument, you will directly access the command line of the underlying docker 
+  container.
 ```
 
-_See code: [src/commands/wpcli.js](https://github.com/wordup-dev/wordup-cli/blob/v0.7.3/src/commands/wpcli.js)_
+_See code: [src/commands/wpcli.js](https://github.com/wordup-dev/wordup-cli/blob/v0.7.4/src/commands/wpcli.js)_
 <!-- commandsstop -->
 
 # Tutorial
