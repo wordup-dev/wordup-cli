@@ -1,5 +1,7 @@
 FROM wordpress:5.4.0-php7.4-apache
 
+ARG USER_ID=33
+
 COPY php.conf.ini /usr/local/etc/php/conf.d/conf.ini
 
 # Install msmtp
@@ -7,6 +9,7 @@ RUN apt-get update; \
 	apt-get install -y \
 		msmtp \
 		sudo \
+		jq \
 		mariadb-client \
 	;
 
@@ -18,4 +21,5 @@ RUN set -ex; \
 	chmod +x /usr/local/bin/wp; \
 	wp --allow-root --version
 
-
+RUN userdel -f www-data &&\
+    useradd -l -u ${USER_ID} www-data

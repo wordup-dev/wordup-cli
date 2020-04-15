@@ -107,7 +107,7 @@ class InstallCommand extends Command {
     //Set install startup script
     this.createWordupScript(wordupArchive, siteUrl)
     //Prepare docker-compose specific settings
-    project.prepareDockerComposeUp(flags.port)
+    project.prepareDockerComposeUp(flags.port, flags.build)
 
     // ------- Install docker containers -----
     if(this.config.platform === 'win32'){
@@ -180,7 +180,7 @@ class InstallCommand extends Command {
       customScripts.push('\tif [ $(sudo -u www-data wp core version) != "'+initFromArchiveJson.wp_version+'" ]; then sudo -u www-data wp core update --force --version='+initFromArchiveJson.wp_version+'; fi')
       
       if(projectType === 'installation'){
-        //customScripts.push('\trm -rf /var/www/html/wp-content/*')
+        customScripts.push('\trm -rf /var/www/html/wp-content/*')
       }else{
         excludeSrc = '--exclude="backup/wp-content/'+projectType+'/'+this.wordupProject.wPkg('slugName')+'/*"'
       }
@@ -207,6 +207,11 @@ class InstallCommand extends Command {
       customScripts.push('\tsudo -u www-data wp core install --url='+siteUrl+' --title="'+this.wordupProject.wPkg('wpInstall.title', 'Wordup')+'" --admin_user='+admin.name+' --admin_password="'+admin.password+'" --admin_email='+admin.email)
       //customScripts.push('\tsudo -u www-data wp plugin install https://api.wordup.dev/release_dl/wordup-connect/latest/wordup-connect.zip --activate')
     }
+
+    // ----- Set siteurl -----
+    customScripts.push('\tsudo -u www-data wp config set WP_HOME "\'http://\'.\\$_SERVER[\'HTTP_HOST\']" --raw')
+    customScripts.push('\tsudo -u www-data wp config set WP_SITEURL WP_HOME --raw')
+
 
     // ----- Custom language ----
     const lang = this.wordupProject.wPkg('wpInstall.language', 'en_US')
@@ -373,6 +378,7 @@ InstallCommand.flags = {
   port: flags.string({char: 'p', description: 'Install on a different port', default:'8000'}),
   prompt: flags.boolean({description: 'If you want to do the setup again', exclusive: ['archive','connect']}),
   archive: flags.string({description: 'Install from a wordup archive (needs to be located in your dist folder).'}),
+  build: flags.boolean({description: 'Build the WordPress docker container on your system', default:false}),
   connect: flags.string({description: 'Install from a WordPress running website.', exclusive: ['archive'], hidden:true}),
   'private-key': flags.string({description: 'Private key for the wordup-connect plugin', exclusive: ['archive'], dependsOn: ['connect'], hidden:true}),
 }

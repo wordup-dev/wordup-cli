@@ -44,7 +44,6 @@ class Backup {
                 if(code !== 0){
                     reject('Could not find WordPress version number')
                 }
-
                 this.wpVersion = stdout.trim()
                 resolve(this.wpVersion)
             })

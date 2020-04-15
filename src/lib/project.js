@@ -311,7 +311,7 @@ class Project {
   }
 
 
-  prepareDockerComposeUp(port){
+  prepareDockerComposeUp(port, build){
 
     // Check if docker-compose is installed
     if (!shell.which('docker-compose')) {
@@ -332,10 +332,10 @@ class Project {
     // Kudos: https://jtreminio.com/blog/running-docker-containers-as-current-host-user/
     if(this.oclifConfig.platform === 'linux'){
       // If the current user is not root
-      if (process.getuid && process.getuid() !== 1){
+      if (process.getuid && process.getuid() !== 33){
         this.log('INFO: You are running this command on linux with a different host uid than we use in the containers:')
-        this.log('Some wordup functions could not be working correctly')
-        this.log('Make sure to allow r+w permissions for uid == 1 for the ./dist and the ./src folder')
+        this.log('Some wordup functions could not be working correctly.')
+        this.log('TIPP: Try to run wordup local:install with the --build command.')
         //this.log('Try to run the commands with: "sudo -u $(id -nu 1) wordup ..."')
         this.log('')
       }
@@ -357,8 +357,8 @@ class Project {
     const seperator = (this.oclifConfig.platform === 'win32') ? ';' : ':'
     let composerFiles = this.getProjectConfigPath('docker-compose.yml')
 
-    if (!fs.existsSync(composerFiles) || port){
-      this.createComposeFile(port)
+    if (!fs.existsSync(composerFiles) || port || build){
+      this.createComposeFile(port, build)
     }
 
     //Set custom docker-compose file
@@ -372,7 +372,7 @@ class Project {
   }
 
 
-  createComposeFile(port){
+  createComposeFile(port, build){
 
     if(!port) port = 8000
 
@@ -382,6 +382,19 @@ class Project {
     const file = fs.readFileSync( this.wordupDockerPath('docker-compose.dev.yml') , 'utf8')
 
     let dockerComposeSettings = YAML.parse(file)
+
+    // Check if WP docker container should be build on system
+    if(build){
+      let buildArgs = {}
+      if(this.oclifConfig.platform === 'linux' && process.getuid){
+        buildArgs['USER_ID'] = process.getuid()
+      }
+      dockerComposeSettings.services.wordpress.image = 'wordup-wp:2.0'
+      dockerComposeSettings.services.wordpress.build = {
+        'context':this.wordupDockerPath(),
+        'args': buildArgs
+      }
+    }
 
     // Set port
     dockerComposeSettings.services.wordpress.ports = [port+':80']
