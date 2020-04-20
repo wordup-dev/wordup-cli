@@ -327,6 +327,6 @@ To learn more about wordup in general, visit: https://wordup.dev
 # License / Contributing
 
 wordup-cli is an open-source project. If you are interested in contributing to wordup-cli, 
-fell free to join us.
+feel free to join us.
 
 See the [LICENSE](LICENSE) file for details.
