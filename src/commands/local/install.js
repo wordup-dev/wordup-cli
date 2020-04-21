@@ -373,6 +373,8 @@ Wordup will assign automatically a different default port, if the default port o
 Note: Flags in this command overrule the wordup config.yml.
 `
 
+InstallCommand.aliases = ['install']
+
 InstallCommand.flags = {
   ...Command.flags,
   port: flags.string({char: 'p', description: 'Install on a different port', default:'8000'}),

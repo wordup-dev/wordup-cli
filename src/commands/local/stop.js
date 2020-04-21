@@ -73,6 +73,8 @@ StopCommand.description = `Stop the development server
 Optionally you can use -d to delete the whole installation, this includes all files in your WordPress installation.
 `
 
+StopCommand.aliases = ['stop']
+
 StopCommand.flags = {
   ...Command.flags,
   project: flags.string({char: 'p', description: 'A project slug name'}),

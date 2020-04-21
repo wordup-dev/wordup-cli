@@ -68,7 +68,7 @@ class StartCommand extends Command {
   }
 }
 
-StartCommand.aliases = ['run']
+StartCommand.aliases = ['run', 'start']
 
 StartCommand.description = `Start the WordPress development server
 ...

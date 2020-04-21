@@ -14,7 +14,7 @@ services:
       - MYSQL_USER=wordpress
       - MYSQL_PASSWORD=wordpress
   wordpress:
-    image: 'wordup-docker'    
+    image: 'wordupdev/wordup-wp:2.0-php7.4'    
     restart: always
     ports:
       - '8000:80'
