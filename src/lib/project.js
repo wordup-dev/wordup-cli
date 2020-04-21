@@ -333,10 +333,10 @@ class Project {
     if(this.oclifConfig.platform === 'linux'){
       // If the current user is not root
       if (process.getuid && process.getuid() !== 33){
+        this.log('')
         this.log('INFO: You are running this command on linux with a different host uid than we use in the containers:')
         this.log('Some wordup functions could not be working correctly.')
-        this.log('TIPP: Try to run wordup local:install with the --build command.')
-        //this.log('Try to run the commands with: "sudo -u $(id -nu 1) wordup ..."')
+        this.log('Try to run wordup local:install with the --build command.')
         this.log('')
       }
     }

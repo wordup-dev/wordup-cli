@@ -80,7 +80,7 @@ $ npm install -g wordup-cli
 $ wordup COMMAND
 running command...
 $ wordup (-v|--version|version)
-wordup-cli/1.0.0-alpha.7 darwin-x64 node-v10.15.0
+wordup-cli/1.0.0-alpha.8 darwin-x64 node-v10.15.0
 $ wordup --help [COMMAND]
 USAGE
   $ wordup COMMAND
@@ -92,11 +92,11 @@ USAGE
 * [`wordup export TYPE`](#wordup-export-type)
 * [`wordup help [COMMAND]`](#wordup-help-command)
 * [`wordup init`](#wordup-init)
-* [`wordup install`](#wordup-install)
 * [`wordup list`](#wordup-list)
+* [`wordup local:install`](#wordup-localinstall)
+* [`wordup local:start`](#wordup-localstart)
+* [`wordup local:stop`](#wordup-localstop)
 * [`wordup snippet TYPE NAME`](#wordup-snippet-type-name)
-* [`wordup start`](#wordup-start)
-* [`wordup stop`](#wordup-stop)
 * [`wordup wpcli COMMAND`](#wordup-wpcli-command)
 
 ## `wordup export TYPE`
@@ -116,11 +116,12 @@ OPTIONS
 DESCRIPTION
   ...
   The exported zip-file of a plugin/theme are ready for distribution.
+
   An exported installation file can be used for setting up a remote WordPress installation or
   for backing up your current development stack.
 ```
 
-_See code: [src/commands/export.js](https://github.com/wordup-dev/wordup-cli/blob/v1.0.0-alpha.7/src/commands/export.js)_
+_See code: [src/commands/export.js](https://github.com/wordup-dev/wordup-cli/blob/v1.0.0-alpha.8/src/commands/export.js)_
 
 ## `wordup help [COMMAND]`
 
@@ -137,7 +138,7 @@ OPTIONS
   --all  see all commands in CLI
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.1/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.3/src/commands/help.ts)_
 
 ## `wordup init`
 
@@ -148,48 +149,15 @@ USAGE
   $ wordup init
 
 OPTIONS
-  --[no-]autoinstall                  Automatically install wordup project after init
   --name=name                         A name for the new project
   --type=plugins|themes|installation  What type of WordPress project
 
 DESCRIPTION
   ...
-  After you have initialized a new project, 'wordup install' will be called automatically, as a postinstall script in 
-  your package.json. 
-  You can stop this behavior with --no-autoinstall
+  After you have initialized a new project, you can start the docker development server with 'wordup local:install'
 ```
 
-_See code: [src/commands/init.js](https://github.com/wordup-dev/wordup-cli/blob/v1.0.0-alpha.7/src/commands/init.js)_
-
-## `wordup install`
-
-Install and start the WordPress development server
-
-```
-USAGE
-  $ wordup install
-
-OPTIONS
-  -p, --port=port            [default: 8000] Install on a different port
-  --archive=archive          Install from a wordup archive (needs to be located in your dist folder).
-  --connect=connect          Install from a WordPress running website.
-  --logs                     Shows all stdout logs of this process
-  --private-key=private-key  Private key for the wordup-connect plugin
-  --prompt                   If you want to do the setup again
-
-DESCRIPTION
-  ...
-  If there is no wpInstall config in .wordup/config.yml, a setup for your installation will be shown.
-
-  The web frontend for the catched emails (MailHog) is available on localhost:[WORDPRESS_PORT + 1]
-
-  Wordup will assign automatically a different default port, if the default port of 8000 is taken by another wordup 
-  project.
-
-  Note: Flags in this command overrule the wordup config.yml.
-```
-
-_See code: [src/commands/install.js](https://github.com/wordup-dev/wordup-cli/blob/v1.0.0-alpha.7/src/commands/install.js)_
+_See code: [src/commands/init.js](https://github.com/wordup-dev/wordup-cli/blob/v1.0.0-alpha.8/src/commands/init.js)_
 
 ## `wordup list`
 
@@ -210,7 +178,89 @@ ALIASES
   $ wordup ls
 ```
 
-_See code: [src/commands/list.js](https://github.com/wordup-dev/wordup-cli/blob/v1.0.0-alpha.7/src/commands/list.js)_
+_See code: [src/commands/list.js](https://github.com/wordup-dev/wordup-cli/blob/v1.0.0-alpha.8/src/commands/list.js)_
+
+## `wordup local:install`
+
+Install and start the WordPress development server
+
+```
+USAGE
+  $ wordup local:install
+
+OPTIONS
+  -p, --port=port    [default: 8000] Install on a different port
+  --archive=archive  Install from a wordup archive (needs to be located in your dist folder).
+  --build            Build the WordPress docker container on your system
+  --logs             Shows all stdout logs of this process
+  --prompt           If you want to do the setup again
+
+DESCRIPTION
+  ...
+  If there is no wpInstall config in .wordup/config.yml, a setup for your installation will be shown.
+
+  The web frontend for the catched emails (MailHog) is available on localhost:[WORDPRESS_PORT + 1]
+
+  Wordup will assign automatically a different default port, if the default port of 8000 is taken by another wordup 
+  project.
+
+  Note: Flags in this command overrule the wordup config.yml.
+
+ALIASES
+  $ wordup install
+```
+
+_See code: [src/commands/local/install.js](https://github.com/wordup-dev/wordup-cli/blob/v1.0.0-alpha.8/src/commands/local/install.js)_
+
+## `wordup local:start`
+
+Start the WordPress development server
+
+```
+USAGE
+  $ wordup local:start
+
+OPTIONS
+  --logs  Shows all stdout logs of this process
+
+DESCRIPTION
+  ...
+  You can onl run this command if your development stack is installed.
+
+ALIASES
+  $ wordup run
+  $ wordup start
+```
+
+_See code: [src/commands/local/start.js](https://github.com/wordup-dev/wordup-cli/blob/v1.0.0-alpha.8/src/commands/local/start.js)_
+
+## `wordup local:stop`
+
+Stop the development server
+
+```
+USAGE
+  $ wordup local:stop
+
+OPTIONS
+  -d, --delete           Deletes all attached volumes/data (WARNING: Your content in your WordPress installation will be
+                         deleted)
+
+  -p, --project=project  A project slug name
+
+  --force                Force delete
+
+  --logs                 Shows all stdout logs of this process
+
+DESCRIPTION
+  ...
+  Optionally you can use -d to delete the whole installation, this includes all files in your WordPress installation.
+
+ALIASES
+  $ wordup stop
+```
+
+_See code: [src/commands/local/stop.js](https://github.com/wordup-dev/wordup-cli/blob/v1.0.0-alpha.8/src/commands/local/stop.js)_
 
 ## `wordup snippet TYPE NAME`
 
@@ -235,53 +285,7 @@ DESCRIPTION
   As an example: wordup snippet block MyGutenbergBlock
 ```
 
-_See code: [src/commands/snippet.js](https://github.com/wordup-dev/wordup-cli/blob/v1.0.0-alpha.7/src/commands/snippet.js)_
-
-## `wordup start`
-
-Start the WordPress development server
-
-```
-USAGE
-  $ wordup start
-
-OPTIONS
-  --logs  Shows all stdout logs of this process
-
-DESCRIPTION
-  ...
-  You can run only this command if your development stack is installed.
-
-ALIASES
-  $ wordup run
-```
-
-_See code: [src/commands/start.js](https://github.com/wordup-dev/wordup-cli/blob/v1.0.0-alpha.7/src/commands/start.js)_
-
-## `wordup stop`
-
-Stop the development server
-
-```
-USAGE
-  $ wordup stop
-
-OPTIONS
-  -d, --delete           Deletes all attached volumes/data (WARNING: Your content in your WordPress installation will be
-                         deleted)
-
-  -p, --project=project  A project slug name
-
-  --force                Force delete
-
-  --logs                 Shows all stdout logs of this process
-
-DESCRIPTION
-  ...
-  Optionally you can use -d to delete the whole installation, this includes all files in your WordPress installation.
-```
-
-_See code: [src/commands/stop.js](https://github.com/wordup-dev/wordup-cli/blob/v1.0.0-alpha.7/src/commands/stop.js)_
+_See code: [src/commands/snippet.js](https://github.com/wordup-dev/wordup-cli/blob/v1.0.0-alpha.8/src/commands/snippet.js)_
 
 ## `wordup wpcli COMMAND`
 
@@ -302,7 +306,7 @@ DESCRIPTION
   As an example: wordup wpcli post list
 ```
 
-_See code: [src/commands/wpcli.js](https://github.com/wordup-dev/wordup-cli/blob/v1.0.0-alpha.7/src/commands/wpcli.js)_
+_See code: [src/commands/wpcli.js](https://github.com/wordup-dev/wordup-cli/blob/v1.0.0-alpha.8/src/commands/wpcli.js)_
 <!-- commandsstop -->
 
 # Tutorial
