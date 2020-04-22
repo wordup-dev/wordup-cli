@@ -181,13 +181,14 @@ class PublishCommand extends Command {
             'Content-Length': archiveResult.size,
             'x-goog-meta-semver': this.semverIncrement,
             'x-goog-meta-buildtype':this.publishEnv,
+            'x-goog-meta-trigger':'cli',
             'x-goog-content-length-range':'0,'+MAX_UPLOAD_SIZE_IN_BYTES
         }
     }
 
     cli.action.start('Upload project source data')
 
-    return axios.post(api_url+'/projects/'+this.projectSlug+'/build_url_token/',{semver:this.semverIncrement, build_type:this.publishEnv}, {
+    return axios.post(api_url+'/projects/'+this.projectSlug+'/build_url_token/',{semver:this.semverIncrement, build_type:this.publishEnv, trigger:'cli'}, {
         headers:{
             'Authorization': "token " +this.accessToken
         }

@@ -377,7 +377,6 @@ class Project {
     if(!port) port = 8000
 
     const projectTitle = this.wPkg('slugName')
-    const isCloudNode = process.env.WORDUP_CLOUD_NODE || false
 
     const file = fs.readFileSync( this.wordupDockerPath('docker-compose.dev.yml') , 'utf8')
 
@@ -402,8 +401,7 @@ class Project {
     // Set volumes
     let wpVolumes = dockerComposeSettings.services.wordpress.volumes
     if(this.wPkg('type') === 'installation'){
-      // In cloud node, don't mount volume
-      if(!isCloudNode) wpVolumes.push('./'+this.wPkg('srcFolder', 'src')+':/var/www/html/wp-content')
+      wpVolumes.push('./'+this.wPkg('srcFolder', 'src')+':/var/www/html/wp-content')
     }else{
       wpVolumes.push('./'+this.wPkg('srcFolder', 'src')+':/var/www/html/wp-content/'+this.wPkg('type')+'/'+this.wPkg('slugName'))
     }
@@ -419,25 +417,9 @@ class Project {
 
     // Set settings 
     let env = dockerComposeSettings.services.wordpress.environment 
-    /*env.push('WORDPRESS_BLOG_NAME='+this.wPkg('wpInstall.title', projectTitle))
-
-    if(isCloudNode){
-      env.push('WORDPRESS_SCHEME=https')
-    }
-
-    // Users
-    const users = this.wPkg('wpInstall.users')
-    if(users && typeof users === 'object'){
-      const admin = users[0]
-      env.push('WORDPRESS_USERNAME='+admin.name)
-      env.push('WORDPRESS_PASSWORD='+admin.password)
-      env.push('WORDPRESS_EMAIL='+admin.email)
-    }else{
-      //2do: Default Values
-    }*/
+  
     env.push('WORDUP_PROJECT='+projectTitle)
     env.push('WORDUP_PROJECT_TYPE='+this.wPkg('type'))
-    env.push('WORDUP_CLOUD_NODE='+ (isCloudNode ? 'yes' : 'no'))
     
     //Set mailhog port
     dockerComposeSettings.services.mail.ports = [ (parseInt(port,10) + 1)+':8025']
