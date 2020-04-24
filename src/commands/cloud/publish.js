@@ -194,7 +194,6 @@ class PublishCommand extends Command {
         }
     }).then(res => {
         if(res.status === 200){
-            //console.log(res.data.upload_url)
             return res.data.upload_url
         }
     }).then(url => axios.put(url, data, options)).then(res => {
