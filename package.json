@@ -25,7 +25,7 @@
     "tar": "^6.0.1",
     "tcp-port-used": "^1.0.1",
     "tmp": "^0.1.0",
-    "update-notifier": "^3.0.1",
+    "update-notifier": "^4.1.0",
     "yaml": "^1.9.2",
     "yeoman-environment": "^2.9.4",
     "yeoman-generator": "^4.8.2"
