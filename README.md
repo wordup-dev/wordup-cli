@@ -8,6 +8,7 @@ Wordup CLI
 [![Wordup docs](https://img.shields.io/badge/wordup-docs-brightgreen.svg)](https://docs.wordup.dev)
 [![Twitter Follow](https://img.shields.io/twitter/follow/wordup_dev.svg?label=%40wordup_dev&style=social)](https://twitter.com/wordup_dev)
 
+> **CAUTION**: The 1.0.0 major release is not backwards compatible
 
 Wordup CLI is an open-source development toolkit for setting up and managing your local WordPress Theme/Plugin development, so that you can totally focus on coding.
 
@@ -34,16 +35,10 @@ What you can do with wordup-cli:
 * ⏱**Speed up your development** - Install a new project with a blank WordPress installation in a matter of minutes
 * 🛠️**Boilerplate** - Scaffold your theme/plugin with the official source code from WordPress (e.g. [underscore](https://github.com/automattic/_s)). You can also add code snippets like *Gutenberg* blocks to your source code.
 * ⚙️**Automatic installation of dependencies** - Automatically download and activate public WordPress Plugins/Themes or even Github hosted projects (like e.g. [wp-graphql](https://github.com/wp-graphql/wp-graphql))
-* 📚**Fixtures** - Add posts, pages, media files and many more automatically to your WordPress installation and develop immediately with your own page structure
 * 🚀**Easy portability** - Export your theme/project or your whole WordPress installation. So that you can install it on a remote server.
 * 📦**Backup your installation** - And (re)install a project from an exported wordup project.
-* 🤩**Hassle-free remote WordPress connection** - Install your project, based on an existing WordPress hosted website (with the [wordup-connect](https://github.com/wordup-dev/wordup-connect) plugin). Use this feature for example to test major WordPress updates with ease locally.
 * 👾**Share your stack** - wordup is the easiest way to share your WordPress project with the world or just your team members. Just type:  `git clone`, and then `wordup install`
 * ✉️**Catch emails** - Catch all emails from WordPress and view the outgoing emails in a web UI
-
-# Examples
-
-Checkout this [VIDEO](https://wordup.dev/#video) on our website to see how fast you can setup a new WordPress dev environment.
 
 # Installation / Requirements 
 
@@ -57,21 +52,10 @@ $ npm install -g wordup-cli
 
 After installing wordup-cli, you can create your first project with `wordup init`
 
----
-
-If you **don't want** to install wordup-cli globally, you can also use wordup-cli as a devDependency via `npx`. Start directly with a new wordup project: 
-
-```sh
-$ npx wordup-cli init
-```
-
-`npx wordup-cli init` will add automatically the wordup-cli to your new project devDependencies.
-
-Note: If you use wordup-cli as a devDependency make sure to always use `npx` before every `wordup` command. 
-
 # Documentation
 
 For detailed information visit [docs.wordup.dev](https://docs.wordup.dev)
+
 
 # Usage
 <!-- usage -->
@@ -308,12 +292,6 @@ DESCRIPTION
 
 _See code: [src/commands/wpcli.js](https://github.com/wordup-dev/wordup-cli/blob/v1.0.0-alpha.8/src/commands/wpcli.js)_
 <!-- commandsstop -->
-
-# Tutorial
-
-Checkout the interactive tutorial on Google Cloud Shell: 
-
-[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://console.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https%3A%2F%2Fgithub.com%2Fwordup-dev%2Fcloud-shell-tutorial&cloudshell_tutorial=wordup-tutorial.md)
 
 # Wordup for Visual Studio Code
 
