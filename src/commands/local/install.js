@@ -128,7 +128,7 @@ class InstallCommand extends Command {
     // ----- Installing WordPress ----
     await this.customLogs('Installing WordPress based on wordup config', (resolve, reject, showLogs) => {
       project.checkLiveliness(siteUrl).then(res => {
-        shell.exec('docker-compose --project-directory ' + project.getProjectPath() + ' exec -T wordpress bash /wordup/config/docker/wordup.sh install',{silent: !showLogs}, function (code, _stdout, _stderr) {
+        shell.exec('docker-compose --project-directory ' + project.getProjectPath() + ' exec -T wordpress bash /wordup/config/cache/wordup.sh install',{silent: !showLogs}, function (code, _stdout, _stderr) {
           if (code === 0) {
             resolve({done: '✔', code:code})
           } else {
@@ -281,7 +281,7 @@ class InstallCommand extends Command {
   }
 
   createCustomShellScript(customScripts){
-    const customShellScript = this.wordupProject.getProjectConfigPath('wordup.sh')
+    const customShellScript = this.wordupProject.getProjectCachePath('wordup.sh')
 
     fs.copySync(this.wordupProject.wordupDockerPath('wordup.sh'), customShellScript)
 

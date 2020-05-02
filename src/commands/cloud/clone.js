@@ -34,7 +34,6 @@ class CloneCommand extends Command {
     this.api = new WordupAPI(this.wordupConfig)
 
     // Prepare backup class
-    const distPath = project.getProjectPath(project.wPkg('distFolder','dist'))
     const backup = new Backup(project)
 
     let wpVersion = null
@@ -57,7 +56,7 @@ class CloneCommand extends Command {
     // Create installtion files
     cli.action.start('Create WordPress backup from project')
     try {      
-      await backup.createInstallation(distPath, true)
+      await backup.createInstallation(true, true)
       cli.action.stop()
 
     }catch(e){
@@ -66,10 +65,14 @@ class CloneCommand extends Command {
 
     }
 
+    const backupPath = project.getProjectCachePath(backup.backupFile)
+
     // Upload the backup
-    this.uploadArchive(backup.backupFile, uploadUrl, wpVersion).then(res => {
+    this.uploadArchive(backupPath, uploadUrl, wpVersion).then(res => {
       this.log('')
       this.log('The WordPress installation will be created now, this can take up to 5 minutes. Please check the status under https://console.wordup.dev')
+    }).finally(() => {
+      fs.remove(backupPath)
     })
 
   }
@@ -80,7 +83,6 @@ class CloneCommand extends Command {
 
     const data = fs.createReadStream(archivePath)
     const stat = fs.statSync(archivePath)
-
 
     //Check for max file size
     if(stat.size > MAX_UPLOAD_SIZE_IN_BYTES){
@@ -133,7 +135,5 @@ After cloning the project, your data will be deleted from our servers.
 CloneCommand.flags = {
   //server: flags.string({char: 's', required:false, description: 'Name of the server/vm or cluster'}),
 }
-
-CloneCommand.hidden = true
 
 module.exports = CloneCommand

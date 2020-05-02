@@ -250,6 +250,4 @@ PublishCommand.flags = {
   token: flags.string({description: 'A provided project token', env: 'WORDUP_PROJECT_AUTH_TOKEN'}),
 }
 
-PublishCommand.hidden = true
-
 module.exports = PublishCommand

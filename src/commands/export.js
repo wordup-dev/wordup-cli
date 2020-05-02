@@ -33,7 +33,7 @@ class ExportCommand extends Command {
     
     try {
       if (exportType === 'installation') {
-          result = await new Backup(project).createInstallation(distPath)
+          result = await new Backup(project).createInstallation()
       }else if(exportType === 'sql'){
           result = await new Backup(project).createSql()
       }else if(exportType === 'src'){

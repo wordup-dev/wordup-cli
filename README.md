@@ -8,7 +8,7 @@ Wordup CLI
 [![Wordup docs](https://img.shields.io/badge/wordup-docs-brightgreen.svg)](https://docs.wordup.dev)
 [![Twitter Follow](https://img.shields.io/twitter/follow/wordup_dev.svg?label=%40wordup_dev&style=social)](https://twitter.com/wordup_dev)
 
-> **CAUTION**: The 1.0.0 major release is not backwards compatible
+> ⚠️**CAUTION**: The 1.0.0 major release is not backwards compatible
 
 Wordup CLI is an open-source development toolkit for setting up and managing your local WordPress Theme/Plugin development, so that you can totally focus on coding.
 
@@ -16,12 +16,10 @@ It is based on docker-compose and uses a docker containerized LAMP-stack with al
 
 <!-- toc -->
 * [Features](#features)
-* [Examples](#examples)
 * [Installation / Requirements](#installation--requirements)
 * [Documentation](#documentation)
 * [Usage](#usage)
 * [Commands](#commands)
-* [Tutorial](#tutorial)
 * [Wordup for Visual Studio Code](#wordup-for-visual-studio-code)
 * [Learn more](#learn-more)
 * [License / Contributing](#license--contributing)

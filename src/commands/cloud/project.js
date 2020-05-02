@@ -66,6 +66,4 @@ ProjectCommand.flags = {
     public:flags.boolean({description: 'Create a public project', default:false})
 }
 
-ProjectCommand.hidden = true
-
 module.exports = ProjectCommand

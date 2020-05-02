@@ -26,6 +26,9 @@ class AuthCommand extends Command {
       const userToken = this.getUserAuthToken()
 
       if(!userToken){
+        this.log('INFO: You need to have a Wordup account to authenticate.')
+        this.log("Visit https://console.wordup.dev if you don't have an account.")
+        this.log('')
         api.oauth.authFlow()
       } else {
       
@@ -52,7 +55,5 @@ You will be redirect to the wordup.dev page.
 AuthCommand.flags = {
   logout: flags.boolean({char: 'l', description: 'Logout of your account'}),
 }
-
-AuthCommand.hidden = true
 
 module.exports = AuthCommand

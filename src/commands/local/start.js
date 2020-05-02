@@ -47,7 +47,7 @@ class StartCommand extends Command {
 
     // ------ Exec startup script -----
     await this.customLogs('Execute startup script', (resolve, reject, showLogs) => {
-      shell.exec("docker-compose --project-directory " + project.getProjectPath() + " exec -T wordpress bash /wordup/config/docker/wordup.sh start", {silent: !showLogs}, function (code, _stdout, _stderr) {
+      shell.exec("docker-compose --project-directory " + project.getProjectPath() + " exec -T wordpress bash /wordup/config/cache/wordup.sh start", {silent: !showLogs}, function (code, _stdout, _stderr) {
         if (code === 0) {
           resolve({done: '✔', code: code})
         } else {

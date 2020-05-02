@@ -43,7 +43,7 @@ class StopCommand extends Command {
 
     } else if (this.wordupProject.wPkg('slugName')) {
       projectName = this.wordupProject.wPkg('slugName')
-      shell.env.COMPOSE_FILE = this.wordupProject.getProjectConfigPath('docker-compose.yml')
+      shell.env.COMPOSE_FILE = this.wordupProject.getProjectCachePath('docker-compose.yml')
       if(!fs.existsSync(shell.env.COMPOSE_FILE)){
         this.error('It seems that this project is not running (No docker config found)')
       }

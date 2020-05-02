@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # This script will be used to initialize the docker container. 
-# Never change this file directly.
+# Never change or delete this file.
 
 function install_wordup {
-    echo "Run wordup project ($WORDUP_PROJECT) specific commands..."
+    echo "Run Wordup project ($WORDUP_PROJECT) specific commands..."
 
 
 ###CUSTOM_SCRIPTS###
@@ -12,19 +12,19 @@ function install_wordup {
 }
 
 function start_wordup {
-    echo "Run wordup startup script ..."
+    echo "Run Wordup startup script ..."
 
     chown -R www-data:www-data /var/www/html/wp-content
 }
 
 function backup_wordup {
-    echo "Backup WordPress for wordup ..."
-
-    [[ -z "${WORDUP_BACKUP_FOLDER}" ]] && target_folder='/wordup/dist' || target_folder="${WORDUP_BACKUP_FOLDER}"
+    echo "Backup WordPress for Wordup ..."
 
     wp_version=$(wp core version)
     timestamp=$(date +%s)
     backupfile="installation-$timestamp.tar.gz"
+
+    [[ -z "${WORDUP_BACKUP_PATH}" ]] && target_folder="/wordup/dist/$backupfile" || target_folder="${WORDUP_BACKUP_PATH}"
 
     echo "Export DB"
     tmp_dir=$(mktemp -d -t wp-XXXXXXXXXX)
@@ -46,7 +46,7 @@ function backup_wordup {
     rm -rf "$tmp_dir/*"
 
     echo "Move file to target folder"
-    mv "/tmp/$backupfile" "$target_folder/$backupfile"
+    mv "/tmp/$backupfile" "$target_folder"
 
 }
 

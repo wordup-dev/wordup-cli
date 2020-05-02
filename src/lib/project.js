@@ -316,7 +316,6 @@ class Project {
     // Check if docker-compose is installed
     if (!shell.which('docker-compose')) {
       this.log('This CLI requires ' + chalk.bgBlue('docker-compose') + '. Please download: https://www.docker.com/get-started')
-      this.log('If you dont want to signup for downloading Docker Desktop')
       this.log('You can download Docker Desktop directly here: ')
       if (this.oclifConfig.platform === 'win32') {
         this.log('https://docs.docker.com/docker-for-windows/release-notes/')
@@ -355,7 +354,7 @@ class Project {
 
     //Set project specific docker-compose file
     const seperator = (this.oclifConfig.platform === 'win32') ? ';' : ':'
-    let composerFiles = this.getProjectConfigPath('docker-compose.yml')
+    let composerFiles = this.getProjectCachePath('docker-compose.yml')
 
     if (!fs.existsSync(composerFiles) || port || build){
       this.createComposeFile(port, build)
@@ -430,9 +429,9 @@ class Project {
       env.push('WORDPRESS_TABLE_PREFIX='+tablePrefix)
     }
 
-    const projectDockerComposeFile = this.getProjectConfigPath('docker-compose.yml')
+    const projectDockerComposeFile = this.getProjectCachePath('docker-compose.yml')
 
-    const comment = '#Never change this file directly, use wordup-cli instead.\n\n'
+    const comment = '# Never change or delete this file directly, use wordup-cli instead.\n\n'
     try {
       fs.writeFileSync(projectDockerComposeFile, comment+YAML.stringify(dockerComposeSettings))
     } catch (err) {
@@ -450,8 +449,8 @@ class Project {
     return this.projectPath
   }
 
-  getProjectConfigPath(...addPath){
-    const projectConfigPath = path.join(this.projectPath, '.wordup', 'docker')
+  getProjectCachePath(...addPath){
+    const projectConfigPath = path.join(this.projectPath, '.wordup', 'cache')
     if (!fs.existsSync(projectConfigPath)) {
       fs.mkdirSync(projectConfigPath)
     }
