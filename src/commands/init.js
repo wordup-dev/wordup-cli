@@ -13,10 +13,8 @@ class InitCommand extends Command {
       this.log('')
       this.log('Successfully init new wordup project ('+folder+')')
       this.log('Just open your project folder and start developing :-)')
-      if(flags.autoinstall){
-        this.log('')
-        this.log(chalk.bgBlue('wordup install')+' was executed automatically as a postinstall script in your package.json')
-      }
+      this.log('')
+      this.log('Use '+ chalk.bgBlue('wordup local:install')+' in your project folder, to start your docker development server')
     }).catch((err) => {
       this.error(err)
     })
@@ -32,7 +30,6 @@ class InitCommand extends Command {
     //Init Options
     let initOptions = {
       project: this.wordupProject,
-      autoinstall:flags.autoinstall,
       projectName: flags.name,
       projectType: flags.type
     }
@@ -54,11 +51,10 @@ class InitCommand extends Command {
 
 InitCommand.description = `Create a new wordup project in the current directoy
 ...
-After you have initialized a new project, 'wordup install' will be called automatically, as a postinstall script in your package.json. 
-You can stop this behavior with --no-autoinstall
+After you have initialized a new project, you can start the docker development server with 'wordup local:install'
 `
 InitCommand.flags = {
-  autoinstall: flags.boolean({description: 'Automatically install wordup project after init', default: true, allowNo: true}),
+  autoinstall: flags.boolean({description: 'DEPRECATED: Automatically install wordup project after init', default: false, allowNo: true, hidden:true }),
   name: flags.string({description: 'A name for the new project', env: 'WORDUP_INIT_NAME',}),
   type: flags.string({description: 'What type of WordPress project',options: ['plugins', 'themes', 'installation'], env: 'WORDUP_INIT_TYPE'})
 }

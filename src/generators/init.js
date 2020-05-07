@@ -3,6 +3,7 @@ const path = require('path')
 const slugify = require('slugify')
 const fs = require('fs')
 const YAML = require('yaml')
+const axios = require('axios')
 
 const InstallationPrompt =  require('../prompts/installation')
 
@@ -15,7 +16,7 @@ class WordupInitGenerator extends Generator {
       return false
     }
   
-    if (!val.match(/^([a-z]|\_)/i)) {
+    if (!val.match(/^([a-z])/i)) {
       return 'Please start with a letter'
     }
   
@@ -72,18 +73,6 @@ class WordupInitGenerator extends Generator {
         when: function (answers) {
           return answers.projectType !== 'installation'
         }
-      },
-      {
-        type: 'list',
-        name: 'scaffoldType',
-        when: function (answers) {
-          return (answers.scaffold === true && answers.projectType === 'themes')
-        },
-        message: 'Which scaffold project do you want to use',
-        choices: [
-          {name:'Underscore (WordPress official)', value: 'underscore'},
-          {name:'Understrap', value: 'understrap'}
-        ],
       },
       {
         type: 'input',
@@ -149,7 +138,7 @@ class WordupInitGenerator extends Generator {
       path: wordupConformPath(projectPath),
       installedOnPort: false,
       listeningOnPort: false,
-      scaffoldOnInstall:  this.answers.scaffoldType ? this.answers.scaffoldType : this.answers.scaffold,
+      scaffoldOnInstall: this.answers.scaffold,
       created:Math.floor(Date.now() / 1000)
     })
 
@@ -181,53 +170,8 @@ class WordupInitGenerator extends Generator {
     // Writing wordup config
     this.fs.copyTpl(this.templatePath('config.yml.ejs'), this.destinationPath('.wordup/config.yml'), dotWordupConfig)
 
-    //Writing package.json
-    const {engines, name, version} = require('../../package.json')
-
-    let pjson = {
-      name: projectNameSlug,
-      version: '0.1.0',
-      private:true,
-      engines: engines,
-      scripts: {
-        start:'wordup start || true',
-        build:'wordup export',
-        postinstall:'wordup install || true'
-      }
-    }
-
-    //Add wordup-cli if init command was executed by npx itself or a different programm
-    const entryPoint = process.env._ || ''
-    if(entryPoint.endsWith('npx') || process.env.NPX_CLI_JS){
-      pjson.scripts.start = 'npx wordup start || true'
-      pjson.scripts.build = 'npx wordup export'
-      pjson.scripts.postinstall = 'npx wordup install || true'
-      pjson.devDependencies = {
-        "wordup-cli": "^"+version
-      }
-    }
-
-    if(this.answers.repository){
-      pjson.repository = this.answers.repository
-    }
-
-    if(this.answers.homepage){
-      pjson.homepage = this.answers.homepage
-    }
-
-    this.fs.writeJSON(this.destinationPath('package.json'), pjson, {spaces: 4})
-
-    // Create docker-compose file
-    if (this.answers.custom_compose) {
-      // 2do
-    }
   }
 
-  install() {
-    if(this.options.autoinstall){
-      this.npmInstall();
-    }
-  }
 }
 
 module.exports = WordupInitGenerator

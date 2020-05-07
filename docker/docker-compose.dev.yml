@@ -1,0 +1,46 @@
+version: '3.7'
+
+services:
+  db:
+    image: mariadb:10.3
+    restart: always
+    labels:
+      - 'wordup.dev'
+    volumes:
+      - 'mariadb_data:/var/lib/mysql'
+    environment:
+      - MYSQL_ROOT_PASSWORD=somewordpress
+      - MYSQL_DATABASE=wordpress
+      - MYSQL_USER=wordpress
+      - MYSQL_PASSWORD=wordpress
+  wordpress:
+    image: 'wordupdev/wordup-wp:2.0-php7.4'    
+    restart: always
+    ports:
+      - '8000:80'
+    volumes:
+      - 'wordpress_data:/var/www/html'
+    labels:
+      - 'wordup.dev'
+    depends_on:
+      - db
+      - mail
+    environment:
+      - WORDPRESS_DB_HOST=db:3306
+      - WORDPRESS_DB_USER=wordpress
+      - WORDPRESS_DB_PASSWORD=wordpress
+      - WORDPRESS_DB_NAME=wordpress
+      - WORDPRESS_DEBUG=1
+      - WORDUP_DEBUG=yes
+
+  mail:
+    image: mailhog/mailhog
+    restart: always
+    labels:
+      - 'wordup.dev'
+    ports:
+      - '8025:8025'
+
+volumes:
+  mariadb_data: {}
+  wordpress_data: {}

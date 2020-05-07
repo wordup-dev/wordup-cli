@@ -1,7 +1,7 @@
 const Command =  require('../command-base')
 const shell = require('shelljs')
 const chalk = require('chalk')
-const child_process = require('child_process')
+const utils =  require('../lib/utils')
 
 class WpcliCommand extends Command {
   async run() {
@@ -12,23 +12,27 @@ class WpcliCommand extends Command {
     }
 
     if(!this.wordupProject.isWordupProjectRunning()){
-      this.log('Your project is not running, please use '+chalk.bgBlue('wordup install') +' or '+chalk.bgBlue('wordup start') )
+      this.log('No local WordPress server found, please use '+chalk.bgBlue('wordup local:install') +' or '+chalk.bgBlue('wordup local:start') )
       this.exit(4)
     }
 
-    this.wordupProject.prepareDockerComposeUp(this.wordupProject.config.listeningOnPort)
+    this.wordupProject.prepareDockerComposeUp()
+    
+    let escapedArgs = []
+    argv.forEach(arg => {
+      if(utils.isValidUrl(arg)){
+        escapedArgs.push('"'+arg+'"')
+      }else{
+        escapedArgs.push(arg)
+      }
+    })
 
-    const wpCliCmd = argv.join(' ')
+    const wpCliCmd = escapedArgs.join(' ')
 
-    if(wpCliCmd){
-      this.log('Run command: wp ' + wpCliCmd)
-      shell.exec('docker-compose --project-directory ' + this.wordupProject.getProjectPath() + ' run --rm  --no-deps wordpress-cli ' + wpCliCmd)
-    }else{
-      child_process.spawnSync('docker-compose', [ '--project-directory', this.wordupProject.getProjectPath(), 'run','--no-deps', '-u','www-data','wordpress-cli','/bin/sh'], {
-        stdio: 'inherit'
-      })
+    this.log('Run command: wp ' + wpCliCmd)
+    shell.exec('docker-compose --project-directory ' + this.wordupProject.getProjectPath() + ' exec -u www-data -T wordpress wp ' + wpCliCmd)
 
-    }
+    
   }
 }
 

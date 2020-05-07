@@ -2,54 +2,68 @@ const axios = require('axios')
 const OAuth = require('./oauth')
 
 class WordupAPI {
-  constructor(configDir) {
+  constructor(wordupConfig) {
+
+    this.oauth = new OAuth(wordupConfig)
+
     this.api = axios.create({
-      baseURL: 'http://localhost:8042',
+      baseURL: wordupConfig.get('api_url')
     })
 
-    this.api.interceptors.request.use(async function (config) {
-      const oauthConnect = new OAuth(configDir)
-      const token = await oauthConnect.getToken()
+    this.api.interceptors.request.use(async (config) => {
+      const token = await this.oauth.getToken()
 
       if (token) {
         config.headers = {Authorization: 'Bearer ' + token.access_token}
       }
       return config
-    }, function (error) {
+    }, (error) => {
       return Promise.reject(error)
     })
 
-    this.api.interceptors.response.use(function (response) {
+    this.api.interceptors.response.use((response) => {
       return response
-    }, function (error) {
-      // If status is UNAUTHORIZED
-      if (error.response && error.response.status === 401) {
-        console.log("Your authentication credentials are incorrect or not valid anymore. Use 'wordup auth'")
-      } else {
-        console.log('Unknown problem with our servers:', error.code)
+    }, (error) => {
+      // Optional: Check error message
+      let message = 'Unknown error requesting the wordup API. Please try again';
+      if(error.response.status === 401){
+        message = 'The authentication credentials were not provided or correct. Please reauthenticate.'
+      }else if(error.response.status === 400){
+        if(error.response.data){
+          message = 'Please verify your data \n\n'
+          const errorMsgs = error.response.data
+          const fields = Object.keys(errorMsgs)
+          fields.forEach(field => {
+            message = message + field.toUpperCase() +':\n' + errorMsgs[field].join('\n')
+          })
+        }
+      }else if(error.response.status === 429){
+        const errorMsgs = error.response.data
+        message = errorMsgs.detail || 'Rate limiting exceeded'
+      }else if(error.response.status){
+        message = 'The request to the wordup API ended with a status code of '+error.response.status
       }
-      return Promise.reject(error)
+
+      throw Error(message);
     })
   }
 
-  async getUser() {
-    const res = await this.api.get('/auth').catch(function (error) {})
-    return res.data
-  }
+  userProfile(){
+    return this.api.get('/user/')
+  } 
 
-  async projects() {
-    this.api.get('/projects').then(function (response) {
-      // handle success
-      console.log(response.data)
-    }).catch(function (error) {})
+  createProjectAccessToken(projectId){
+    return this.api.post('/project_tokens/', {project:projectId, type:'custom'})
+  } 
+  
+  createProject(project){
+    return this.api.post('/projects/', project)
+  } 
 
-    // Change
-
-    /* api.patch('/projects/5/', {'created_at':'2018-03-15T19:43:42.568201Z'}).then(function (response) {
-            // handle success
-            console.log(response.data);
-        }).catch(function (error) {}); */
-  }
+  setupWPNode(server, wpVersion){
+    return this.api.post('/wp_nodes/upload_setup/', {server:null, environment:'test', wp_version:wpVersion, settings:{}})
+  } 
+  
 }
 
 module.exports = WordupAPI

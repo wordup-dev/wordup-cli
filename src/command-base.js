@@ -1,7 +1,5 @@
 
 const {Command, flags} = require('@oclif/command')
-const chalk = require('chalk')
-const shell = require('shelljs')
 const Config  = require('./lib/config')
 const Project  = require('./lib/project')
 
@@ -11,17 +9,6 @@ class Base extends Command {
     const {flags} = this.parse(this.constructor)
     this.flags = flags
 
-    if (!shell.which('docker-compose')) {
-      this.log('This CLI requires ' + chalk.bgBlue('docker-compose') + '. Please download: https://www.docker.com/get-started')
-      this.log('If you dont want to signup for downloading Docker Desktop')
-      this.log('You can download Docker Desktop directly here: ')
-      if (this.config.platform === 'win32') {
-        this.log('https://docs.docker.com/docker-for-windows/release-notes/')
-      } else {
-        this.log('https://docs.docker.com/docker-for-mac/release-notes/')
-      }
-      this.exit(1)
-    }
     this.debug = flags.logs || false
     this.wordupConfig = new Config(this.config.configDir)
     this.wordupProject = new Project(this.config, this.log, this.error)
@@ -50,11 +37,27 @@ class Base extends Command {
         log('---')
       }
       return result.code
-    }, function(result) {
+    },(result) => {
       cli.action.stop('-')
       error(result.done,{exit:result.code})
     })
   }
+
+
+  isAuthenticated() {
+    const tokenData = this.wordupConfig.get('token', null)
+    if (tokenData) {
+      return true
+    }
+    return false
+  }
+
+  getUserAuthToken(){
+    const config = this.wordupConfig
+    return config.get('token', null)
+  }
+
+
 }
 
 Base.flags = {

@@ -12,11 +12,11 @@ class SnippetCommand extends Command {
     }
 
     if(!this.wordupProject.isWordupProjectRunning()){
-      this.log('Your project is not running, please use '+chalk.bgBlue('wordup install') +' or '+chalk.bgBlue('wordup start') )
+      this.log('No local WordPress server found, please use '+chalk.bgBlue('wordup local:install') +' or '+chalk.bgBlue('wordup local:start') )
       this.exit(4)
     }
 
-    this.wordupProject.prepareDockerComposeUp(this.wordupProject.config.listeningOnPort)
+    this.wordupProject.prepareDockerComposeUp()
 
     let addArgs = ''
     if(this.wordupProject.wPkg('type') === 'themes'){
@@ -25,7 +25,7 @@ class SnippetCommand extends Command {
         addArgs += '--plugin='+this.wordupProject.wPkg('slugName')
     }
 
-    shell.exec('docker-compose --project-directory ' + this.wordupProject.getProjectPath() + ' run --rm --no-deps wordpress-cli scaffold '+args.type+' '+slugify(args.name)+' '+addArgs)
+    shell.exec('docker-compose --project-directory ' + this.wordupProject.getProjectPath() + ' exec -u www-data -T wordpress wp scaffold '+args.type+' '+slugify(args.name)+' '+addArgs)
 
   }
 }

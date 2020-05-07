@@ -5,13 +5,13 @@ const chalk = require('chalk')
 const crypto = require('crypto')
 const dotProp = require('dot-prop')
 const YAML = require('yaml')
+const tcpPortUsed = require('tcp-port-used')
 
 const Config  = require('./config')
 const {wordupConformPath} =  require('./utils')
 
 const wordupPackageRequiredItems = ['slug', 'projectName','type']
 const wordupInstallationConfigItems = ['title', 'users']
-
 
 class Project {
   constructor(oclifConfig, log, error) {
@@ -43,35 +43,6 @@ class Project {
   }
 
   setUp() {
-    let composerFiles = this.wordupDockerPath('docker-compose.yml')
-
-    const seperator = (this.oclifConfig.platform === 'win32') ? ';' : ':'
-
-    // This is necessary to prevent file permission issues on LINUX with docker
-    // Not working if uid exists in container. This is stil an issue
-    // Kudos: https://jtreminio.com/blog/running-docker-containers-as-current-host-user/
-    let buildDocker = process.env.WORDUP_BUILD_CONTAINER === 'true';
-    if(!buildDocker && this.oclifConfig.platform === 'linux'){
-      // If the current user is not root
-      if (process.getuid && process.getuid() > 0){
-        shell.env.WORDUP_UID = process.getuid()
-        //GroupId is currently not used in dockerfiles
-        if (process.getgid) shell.env.WORDUP_GID = process.getgid()
-
-        buildDocker = true;
-      } 
-    }
-
-    if(buildDocker){
-
-      shell.env.WORDUP_DOCKERFILE_WP_PATH = this.wordupDockerPath('wp') 
-      shell.env.WORDUP_DOCKERFILE_WPCLI_PATH = this.wordupDockerPath('wp-cli') 
-
-      composerFiles += seperator + this.wordupDockerPath('docker-compose.build.yml') 
-    }
-
-    //Legacy support for projects which don't have .wordup/config.yml
-    this.updateWordupStructure()
 
     if (fs.existsSync(this.getProjectPath('.wordup','config.yml'))) {
 
@@ -95,17 +66,10 @@ class Project {
       // Get config based on the current path
       this.config = this._wordupConfigstore.get('projects.' + this.projectId)
 
-      //Set docker-compose files
-      if (fs.existsSync(this.getProjectPath('docker-compose.yml'))) {
-        // If there is a local docker-compose.yml file, extend it
-        composerFiles += seperator + this.getProjectPath('docker-compose.yml') 
-      }
     }
 
-    //Set env which are the same for each project
-    shell.env.COMPOSE_FILE = composerFiles
-    
   }
+
 
   //Get a custom wordup setting from config
   wPkg(key, defaultValue) {
@@ -206,7 +170,7 @@ class Project {
     //Check changed slug
     if(this.wPkg('slugName') !== this.config.slugName){
       this._wordupConfigstore.remove('projects.' + this.projectId)
-      this.error('You have changed the slug in your wordup config, please reinstall this project: '+chalk.bgBlue('wordup stop --project='+this.config.slugName+' --delete')+' and '+chalk.bgBlue('wordup install'),{exit:6})
+      this.error('You have changed the slug in your wordup config, please reinstall this project: '+chalk.bgBlue('wordup local:stop --project='+this.config.slugName+' --delete')+' and '+chalk.bgBlue('wordup local:install'),{exit:6})
       return false
     }    
 
@@ -244,7 +208,7 @@ class Project {
       this.log('')
       if (runningProjectNames.indexOf(this.wPkg('slugName')) >= 0) {
           if(showMsg){
-            this.log('The project ('+this.wPkg('slugName')+') is already running. You can stop it with: '+chalk.bgBlue('wordup stop'))
+            this.log('The project ('+this.wPkg('slugName')+') is already running. You can stop it with: '+chalk.bgBlue('wordup local:stop'))
           }
           return true
       }
@@ -258,7 +222,7 @@ class Project {
     return false
   }
 
-  assignNewPort(defaultPort) {
+  async assignNewPort(defaultPort) {
     const projects = this._wordupConfigstore.get('projects') || []
 
     let ports = []
@@ -269,24 +233,36 @@ class Project {
       }
     })
 
-    if(ports.length > 0){
-      ports.sort((a, b) => a - b)
+    const getNewPort = async (startPort) => {
       let newPort = undefined;
-      let testPort = parseInt(defaultPort,10)
-      do {
-        const closePort = ports.find(function(port) {
-          return port === testPort || testPort < (port + 10)
-        });
-        if(!closePort){
-          newPort = testPort
-        }else{
-          testPort = testPort + 10
-        }
-      } while (!newPort)
-      return String(newPort)
+      if(ports.length > 0){
+        ports.sort((a, b) => a - b)
+        let testPort = parseInt(startPort,10)
+        do {
+          const closePort = ports.find(function(port) {
+            return port === testPort || testPort < (port + 10)
+          });
+          
+          if(!closePort){
+            newPort = testPort
+          }else{
+            testPort = testPort + 10
+          }
+        } while (!newPort)
+      }else{
+        newPort = parseInt(startPort, 10)
+      }
+
+      const inUse = await tcpPortUsed.check(parseInt(newPort,10))
+      if(inUse){
+          return await getNewPort(newPort+10)
+      }else{
+        return String(newPort)
+      }
     }
-    
-    return String(defaultPort)
+
+    return await getNewPort(defaultPort)
+      
   }
 
   getWordupPkgB64() {
@@ -335,23 +311,136 @@ class Project {
   }
 
 
-  prepareDockerComposeUp(port){
+  prepareDockerComposeUp(port, build){
+
+    // Check if docker-compose is installed
+    if (!shell.which('docker-compose')) {
+      this.log('This CLI requires ' + chalk.bgBlue('docker-compose') + '. Please download: https://www.docker.com/get-started')
+      this.log('You can download Docker Desktop directly here: ')
+      if (this.oclifConfig.platform === 'win32') {
+        this.log('https://docs.docker.com/docker-for-windows/release-notes/')
+      } else {
+        this.log('https://docs.docker.com/docker-for-mac/release-notes/')
+      }
+      process.exit()
+    }
+
+
+    // This is necessary to prevent file permission issues on LINUX with docker
+    // Not working if uid exists in container. This is stil an issue
+    // Kudos: https://jtreminio.com/blog/running-docker-containers-as-current-host-user/
+    if(this.oclifConfig.platform === 'linux'){
+      // If the current user is not root
+      if (process.getuid && process.getuid() !== 33){
+        this.log('')
+        this.log('INFO: You are running this command on linux with a different host uid than we use in the containers:')
+        this.log('Some wordup functions could not be working correctly.')
+        this.log('Try to run wordup local:install with the --build command.')
+        this.log('')
+      }
+    }
 
     shell.env.COMPOSE_PROJECT_NAME = this.wPkg('slugName')
-    shell.env.WORDUP_PROJECT = this.wPkg('slugName')
-    shell.env.WORDUP_PORT = port
-    shell.env.WORDUP_MAIL_PORT = parseInt(port,10) + 1
-
-    shell.env.WORDUP_SRC_FOLDER = this.wPkg('srcFolder', 'src')
-    shell.env.WORDUP_DIST_FOLDER = this.wPkg('distFolder','dist')
 
     //This is a hack to prevent file permission issues in bind mount volumes in docker-compose 
-    const srcFolder = this.getProjectPath(shell.env.WORDUP_SRC_FOLDER)
-    const distFolder = this.getProjectPath(shell.env.WORDUP_DIST_FOLDER)
+    const srcFolder = this.getProjectPath(this.wPkg('srcFolder', 'src'))
+    const distFolder = this.getProjectPath(this.wPkg('distFolder','dist'))
     if (!fs.existsSync(srcFolder)) fs.mkdirSync(srcFolder)
     if (!fs.existsSync(distFolder)) fs.mkdirSync(distFolder)
 
+    //2do: optional 
+    //fs.chmodSync(srcFolder,  parseInt('0777', 8))
+    //fs.chmodSync(distFolder,  parseInt('0777', 8))
+
+    //Set project specific docker-compose file
+    const seperator = (this.oclifConfig.platform === 'win32') ? ';' : ':'
+    let composerFiles = this.getProjectCachePath('docker-compose.yml')
+
+    if (!fs.existsSync(composerFiles) || port || build){
+      this.createComposeFile(port, build)
+    }
+
+    //Set custom docker-compose file
+    if (fs.existsSync(this.getProjectPath('docker-compose.yml'))) {
+      // If there is a local docker-compose.yml file, extend it
+      composerFiles += seperator + this.getProjectPath('docker-compose.yml') 
+    }
+
+    shell.env.COMPOSE_FILE = composerFiles
+
   }
+
+
+  createComposeFile(port, build){
+
+    if(!port) port = 8000
+
+    const projectTitle = this.wPkg('slugName')
+
+    const file = fs.readFileSync( this.wordupDockerPath('docker-compose.dev.yml') , 'utf8')
+
+    let dockerComposeSettings = YAML.parse(file)
+
+    // Check if WP docker container should be build on system
+    if(build){
+      let buildArgs = {}
+      if(this.oclifConfig.platform === 'linux' && process.getuid){
+        buildArgs['USER_ID'] = process.getuid()
+      }
+      dockerComposeSettings.services.wordpress.image = 'wordup-wp:2.0'
+      dockerComposeSettings.services.wordpress.build = {
+        'context':this.wordupDockerPath(),
+        'args': buildArgs
+      }
+    }
+
+    // Set port
+    dockerComposeSettings.services.wordpress.ports = [port+':80']
+
+    // Set volumes
+    let wpVolumes = dockerComposeSettings.services.wordpress.volumes
+    if(this.wPkg('type') === 'installation'){
+      wpVolumes.push('./'+this.wPkg('srcFolder', 'src')+':/var/www/html/wp-content')
+    }else{
+      wpVolumes.push('./'+this.wPkg('srcFolder', 'src')+':/var/www/html/wp-content/'+this.wPkg('type')+'/'+this.wPkg('slugName'))
+    }
+
+    wpVolumes.push('./'+this.wPkg('distFolder', 'dist')+':/wordup/dist')
+    wpVolumes.push('./.wordup:/wordup/config')
+    dockerComposeSettings.services.wordpress.volumes = wpVolumes
+
+    //Set labels 
+    let labels = dockerComposeSettings.services.wordpress.labels
+    labels.push('wordup.dev.project='+projectTitle)
+    dockerComposeSettings.services.wordpress.labels = labels
+
+    // Set settings 
+    let env = dockerComposeSettings.services.wordpress.environment 
+  
+    env.push('WORDUP_PROJECT='+projectTitle)
+    env.push('WORDUP_PROJECT_TYPE='+this.wPkg('type'))
+    
+    //Set mailhog port
+    dockerComposeSettings.services.mail.ports = [ (parseInt(port,10) + 1)+':8025']
+
+    // Custom Table prefix
+    const tablePrefix = this.wPkg('wpInstall.tablePrefix')
+    if(tablePrefix){
+      env.push('WORDPRESS_TABLE_PREFIX='+tablePrefix)
+    }
+
+    const projectDockerComposeFile = this.getProjectCachePath('docker-compose.yml')
+
+    const comment = '# Never change or delete this file directly, use wordup-cli instead.\n\n'
+    try {
+      fs.writeFileSync(projectDockerComposeFile, comment+YAML.stringify(dockerComposeSettings))
+    } catch (err) {
+      this.error('Could not create docker-compose file')
+    }
+
+
+  }
+
 
   getProjectPath(...addPath){
     if(addPath){
@@ -360,52 +449,40 @@ class Project {
     return this.projectPath
   }
 
-  updateWordupStructure(){
-    const wordupFolder = this.getProjectPath('.wordup')
-
-    if (fs.existsSync(this.getProjectPath('package.json')) && !fs.existsSync(wordupFolder)) {
-
-      const pjson = fs.readJsonSync(this.getProjectPath('package.json'))
-      if(pjson.hasOwnProperty('wordup')){
-
-          fs.mkdirSync(wordupFolder)
-          
-          const newConfig = Object.assign({},pjson.wordup)
-          if(newConfig.hasOwnProperty('wpInstall')){
-            newConfig.wpInstall.language = 'en_US'
-
-            if(newConfig.wpInstall.hasOwnProperty('adminUser')){
-              newConfig.wpInstall.users = [{
-                'name': newConfig.wpInstall.adminUser,
-                'email': newConfig.wpInstall.adminEmail,
-                'password': newConfig.wpInstall.adminPassword,
-                'role':'administrator'
-              }]
-
-              delete newConfig.wpInstall.adminUser
-              delete newConfig.wpInstall.adminEmail
-              delete newConfig.wpInstall.adminPassword
-            }
-          }
-
-          try {
-
-            const doc = new YAML.Document()
-            doc.commentBefore = ' This is the new wordup config. All wordup specific config from package.json moved here.'
-            doc.contents = newConfig
-
-            fs.writeFileSync(this.getProjectPath('.wordup','config.yml'), doc.toString())
-
-          } catch (err) {
-            this.error(err, {exit:1})
-          }
-
-          this.log('INFO: The wordup config has been moved to .wordup/config.yml in your project folder.')
-          this.log('')
-      }
+  getProjectCachePath(...addPath){
+    const projectConfigPath = path.join(this.projectPath, '.wordup', 'cache')
+    if (!fs.existsSync(projectConfigPath)) {
+      fs.mkdirSync(projectConfigPath)
     }
+    
+    if(addPath){
+      return path.join(projectConfigPath,...addPath)
+    }
+    return projectConfigPath
+  } 
 
+  checkLiveliness(url){
+    return new Promise((resolve, reject) => {
+      let tries = 0
+      const check = () => {
+        setTimeout(() => {
+          tries++;
+          shell.exec('docker-compose --project-directory ' + this.getProjectPath() + ' exec -T wordpress curl -sI http://localhost:80',{silent: true}, function (code, _stdout, _stderr) {
+            if(code === 0){
+              resolve({done: '✔', code:0})
+            }else if (tries < 150) {
+              check()
+            }else{
+              reject({done: 'The WordPress docker container is not running (timeout)', code:1})
+            }
+          })
+        }, 3000);
+      }
+      check()
+    })
   }
+
+
 
 }
 
