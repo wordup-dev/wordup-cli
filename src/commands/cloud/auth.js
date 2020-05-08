@@ -49,7 +49,7 @@ class AuthCommand extends Command {
 
 AuthCommand.description = `Authenticate the CLI with your wordup account
 ...
-You will be redirect to the wordup.dev page.
+You will be redirected to the wordup.dev website.
 `
 
 AuthCommand.flags = {
