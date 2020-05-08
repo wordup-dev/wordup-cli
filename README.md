@@ -62,7 +62,7 @@ $ npm install -g wordup-cli
 $ wordup COMMAND
 running command...
 $ wordup (-v|--version|version)
-wordup-cli/1.0.0-alpha.8 darwin-x64 node-v10.15.0
+wordup-cli/1.0.0 darwin-x64 node-v10.15.0
 $ wordup --help [COMMAND]
 USAGE
   $ wordup COMMAND
@@ -71,6 +71,10 @@ USAGE
 <!-- usagestop -->
 # Commands
 <!-- commands -->
+* [`wordup cloud:auth`](#wordup-cloudauth)
+* [`wordup cloud:clone`](#wordup-cloudclone)
+* [`wordup cloud:project`](#wordup-cloudproject)
+* [`wordup cloud:publish`](#wordup-cloudpublish)
 * [`wordup export TYPE`](#wordup-export-type)
 * [`wordup help [COMMAND]`](#wordup-help-command)
 * [`wordup init`](#wordup-init)
@@ -79,7 +83,82 @@ USAGE
 * [`wordup local:start`](#wordup-localstart)
 * [`wordup local:stop`](#wordup-localstop)
 * [`wordup snippet TYPE NAME`](#wordup-snippet-type-name)
-* [`wordup wpcli COMMAND`](#wordup-wpcli-command)
+* [`wordup wpcli [COMMAND]`](#wordup-wpcli-command)
+
+## `wordup cloud:auth`
+
+Authenticate the CLI with your wordup account
+
+```
+USAGE
+  $ wordup cloud:auth
+
+OPTIONS
+  -l, --logout  Logout of your account
+
+DESCRIPTION
+  ...
+  You will be redirect to the wordup.dev page.
+```
+
+_See code: [src/commands/cloud/auth.js](https://github.com/wordup-dev/wordup-cli/blob/v1.0.0/src/commands/cloud/auth.js)_
+
+## `wordup cloud:clone`
+
+Clone current running WordPress installation to a new node in your wordup account
+
+```
+USAGE
+  $ wordup cloud:clone
+
+DESCRIPTION
+  ...
+  This command will automatically backup and upload your running WordPress installation to wordup.
+
+  After cloning the project, your data will be deleted from our servers.
+```
+
+_See code: [src/commands/cloud/clone.js](https://github.com/wordup-dev/wordup-cli/blob/v1.0.0/src/commands/cloud/clone.js)_
+
+## `wordup cloud:project`
+
+Create a new remote project on wordup.dev
+
+```
+USAGE
+  $ wordup cloud:project
+
+OPTIONS
+  --public  Create a public project
+
+DESCRIPTION
+  ...
+  Use this function to create a remote project on wordup.dev from your local project config.
+```
+
+_See code: [src/commands/cloud/project.js](https://github.com/wordup-dev/wordup-cli/blob/v1.0.0/src/commands/cloud/project.js)_
+
+## `wordup cloud:publish`
+
+Publish your WordPress theme or plugin to your private theme/plugin directory on wordup.
+
+```
+USAGE
+  $ wordup cloud:publish
+
+OPTIONS
+  --env=release|staging          (required) Specify the environment you want to publish to
+  --increment=major|minor|patch  [default: minor] Increment a version by the specified level
+  --token=token                  A provided project token
+
+DESCRIPTION
+  ...
+  The private directory on wordup manages your WordPress plugin and theme projects in the cloud.
+
+  After publishing the project, all WordPress installations can update your theme/plugin to the new project version.
+```
+
+_See code: [src/commands/cloud/publish.js](https://github.com/wordup-dev/wordup-cli/blob/v1.0.0/src/commands/cloud/publish.js)_
 
 ## `wordup export TYPE`
 
@@ -103,7 +182,7 @@ DESCRIPTION
   for backing up your current development stack.
 ```
 
-_See code: [src/commands/export.js](https://github.com/wordup-dev/wordup-cli/blob/v1.0.0-alpha.8/src/commands/export.js)_
+_See code: [src/commands/export.js](https://github.com/wordup-dev/wordup-cli/blob/v1.0.0/src/commands/export.js)_
 
 ## `wordup help [COMMAND]`
 
@@ -139,7 +218,7 @@ DESCRIPTION
   After you have initialized a new project, you can start the docker development server with 'wordup local:install'
 ```
 
-_See code: [src/commands/init.js](https://github.com/wordup-dev/wordup-cli/blob/v1.0.0-alpha.8/src/commands/init.js)_
+_See code: [src/commands/init.js](https://github.com/wordup-dev/wordup-cli/blob/v1.0.0/src/commands/init.js)_
 
 ## `wordup list`
 
@@ -160,7 +239,7 @@ ALIASES
   $ wordup ls
 ```
 
-_See code: [src/commands/list.js](https://github.com/wordup-dev/wordup-cli/blob/v1.0.0-alpha.8/src/commands/list.js)_
+_See code: [src/commands/list.js](https://github.com/wordup-dev/wordup-cli/blob/v1.0.0/src/commands/list.js)_
 
 ## `wordup local:install`
 
@@ -192,7 +271,7 @@ ALIASES
   $ wordup install
 ```
 
-_See code: [src/commands/local/install.js](https://github.com/wordup-dev/wordup-cli/blob/v1.0.0-alpha.8/src/commands/local/install.js)_
+_See code: [src/commands/local/install.js](https://github.com/wordup-dev/wordup-cli/blob/v1.0.0/src/commands/local/install.js)_
 
 ## `wordup local:start`
 
@@ -214,7 +293,7 @@ ALIASES
   $ wordup start
 ```
 
-_See code: [src/commands/local/start.js](https://github.com/wordup-dev/wordup-cli/blob/v1.0.0-alpha.8/src/commands/local/start.js)_
+_See code: [src/commands/local/start.js](https://github.com/wordup-dev/wordup-cli/blob/v1.0.0/src/commands/local/start.js)_
 
 ## `wordup local:stop`
 
@@ -242,7 +321,7 @@ ALIASES
   $ wordup stop
 ```
 
-_See code: [src/commands/local/stop.js](https://github.com/wordup-dev/wordup-cli/blob/v1.0.0-alpha.8/src/commands/local/stop.js)_
+_See code: [src/commands/local/stop.js](https://github.com/wordup-dev/wordup-cli/blob/v1.0.0/src/commands/local/stop.js)_
 
 ## `wordup snippet TYPE NAME`
 
@@ -267,7 +346,7 @@ DESCRIPTION
   As an example: wordup snippet block MyGutenbergBlock
 ```
 
-_See code: [src/commands/snippet.js](https://github.com/wordup-dev/wordup-cli/blob/v1.0.0-alpha.8/src/commands/snippet.js)_
+_See code: [src/commands/snippet.js](https://github.com/wordup-dev/wordup-cli/blob/v1.0.0/src/commands/snippet.js)_
 
 ## `wordup wpcli [COMMAND]`
 
@@ -291,7 +370,7 @@ DESCRIPTION
   container.
 ```
 
-_See code: [src/commands/wpcli.js](https://github.com/wordup-dev/wordup-cli/blob/v1.0.0-alpha.8/src/commands/wpcli.js)_
+_See code: [src/commands/wpcli.js](https://github.com/wordup-dev/wordup-cli/blob/v1.0.0/src/commands/wpcli.js)_
 <!-- commandsstop -->
 
 # Wordup for Visual Studio Code
