@@ -1,7 +1,7 @@
 Wordup CLI
 ==========
 
-![Wordup](https://wordup.dev/assets/img/logo_social.png)
+![Wordup](https://www.wordup.dev/wp-content/uploads/2020/05/logo_social.png)
 
 [![Version](https://img.shields.io/npm/v/wordup-cli.svg)](https://npmjs.org/package/wordup-cli)
 [![Downloads/week](https://img.shields.io/npm/dw/wordup-cli.svg)](https://npmjs.org/package/wordup-cli)
