@@ -10,7 +10,7 @@
     "@oclif/config": "^1.15.1",
     "@oclif/plugin-help": "^2.2.3",
     "archiver": "^4.0.1",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "chalk": "^3.0.0",
     "cli-ux": "^5.4.5",
     "dot-prop": "^5.2.0",
