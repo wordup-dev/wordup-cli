@@ -1,14 +1,12 @@
 Wordup CLI
 ==========
 
-![Wordup](https://www.wordup.dev/wp-content/uploads/2020/05/logo_social.png)
+> ⚠️**CAUTION**: This package is unmaintained
 
 [![Version](https://img.shields.io/npm/v/wordup-cli.svg)](https://npmjs.org/package/wordup-cli)
 [![Downloads/week](https://img.shields.io/npm/dw/wordup-cli.svg)](https://npmjs.org/package/wordup-cli)
-[![Wordup docs](https://img.shields.io/badge/wordup-docs-brightgreen.svg)](https://docs.wordup.dev)
 [![Twitter Follow](https://img.shields.io/twitter/follow/wordup_dev.svg?label=%40wordup_dev&style=social)](https://twitter.com/wordup_dev)
 
-> ⚠️**CAUTION**: The 1.0.0 major release is not backwards compatible
 
 Wordup CLI is an open-source development toolkit for setting up and managing your local WordPress Theme/Plugin development, so that you can totally focus on coding.
 
@@ -21,7 +19,6 @@ It is based on docker-compose and uses a docker containerized LAMP-stack with al
 * [Usage](#usage)
 * [Commands](#commands)
 * [Wordup for Visual Studio Code](#wordup-for-visual-studio-code)
-* [Learn more](#learn-more)
 * [License / Contributing](#license--contributing)
 <!-- tocstop -->
 
@@ -376,10 +373,6 @@ _See code: [src/commands/wpcli.js](https://github.com/wordup-dev/wordup-cli/blob
 # Wordup for Visual Studio Code
 
 If you use VSCode for your development, you can install our [VSCode extension](https://marketplace.visualstudio.com/items?itemName=wordup.wordup-code). This extension will integrate all wordup features in your favorite editor.
-
-# Learn more
-
-To learn more about wordup in general, visit: https://wordup.dev
 
 # License / Contributing
 
